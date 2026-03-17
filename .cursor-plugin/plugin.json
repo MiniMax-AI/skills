@@ -1,7 +1,7 @@
 {
   "name": "minimax-skills",
   "displayName": "MiniMax Skills",
-  "description": "MiniMax AI skills library: frontend development, fullstack development, Android native development, iOS application development, and shader development",
+  "description": "MiniMax AI skills library: frontend development, fullstack development, Android native development, iOS application development, shader development, and GIF sticker maker",
   "version": "1.0.0",
   "author": {
     "name": "MiniMax AI"
@@ -9,7 +9,7 @@
   "homepage": "https://github.com/MiniMax-AI/skills",
   "repository": "https://github.com/MiniMax-AI/skills",
   "license": "MIT",
-  "keywords": ["skills", "frontend", "fullstack", "android", "ios", "shader", "minimax"],
+  "keywords": ["skills", "frontend", "fullstack", "android", "ios", "shader", "gif", "sticker", "minimax"],
   "logo": "assets/logo.png",
   "skills": "./skills/"
 }

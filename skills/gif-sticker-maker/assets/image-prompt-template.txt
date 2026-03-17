@@ -1,0 +1,23 @@
+Transform the subject into a Funko Pop / Pop Mart blind box style 3D figurine.
+
+Style:
+- Cute cartoon proportions (large head, small body)
+- 3D rendered (C4D/Octane quality), premium plastic/vinyl finish
+- Clean white background, soft studio lighting
+
+Subject handling:
+- Person: preserve facial features, hairstyle, clothing
+- Animal/Pet: preserve species, fur color, markings
+- Object: stylize into cute mascot figurine
+- Logo/Icon: transform to 3D toy, preserve original colors and shape
+
+Action: {action}
+Caption: "{caption}"
+
+Caption rendering (CRITICAL — follow exactly):
+- Black bold text with thick white outline stroke
+- Large, clear sans-serif font (e.g. Impact, Helvetica Bold)
+- MUST be placed at the absolute bottom center of the image as a standalone text banner
+- MUST NOT appear on the character's body, clothing, or any accessory
+- Leave visible gap between the character's feet and the caption text
+- Text must have sharp anti-aliased edges — it must survive video animation without warping

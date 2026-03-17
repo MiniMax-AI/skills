@@ -1,0 +1,5 @@
+# Python dependencies
+requests>=2.28
+
+# System dependency (install separately):
+#   ffmpeg — brew install ffmpeg (macOS) / apt install ffmpeg (Ubuntu)

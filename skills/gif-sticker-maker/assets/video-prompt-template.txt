@@ -1,0 +1,14 @@
+Animate this cute 3D cartoon figurine performing: {action}
+
+Requirements:
+- Smooth loopable motion, keep action within 6 seconds
+- Character stays centered, white background remains static
+- Text at bottom must stay sharp and stable — no warping, no blur
+
+Action reference:
+- hi: wave hand cheerfully, slight head tilt
+- laugh: shake with laughter, eyes squint shut
+- cry: tears stream down, body trembles gently
+- love: make heart gesture with both hands, eyes sparkle
+
+CRITICAL: The caption text must remain perfectly readable throughout the entire animation. Zero text distortion.

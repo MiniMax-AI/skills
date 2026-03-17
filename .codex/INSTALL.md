@@ -34,6 +34,7 @@ Enable MiniMax skills in Codex via native skill discovery. Just clone and symlin
 - **android-native-dev** — Android native application development with Material Design 3
 - **ios-application-dev** — iOS application development with UIKit, SnapKit, and SwiftUI
 - **shader-dev** — GLSL shader techniques for stunning visual effects (ShaderToy-compatible)
+- **gif-sticker-maker** — Convert photos into animated GIF stickers (Funko Pop / Pop Mart style)
 
 ## Verify
 
