@@ -23,6 +23,8 @@ Verify by asking: "List available skills"
 - **frontend-dev** — Frontend development with UI design, animations, AI-generated media assets
 - **fullstack-dev** — Full-stack backend architecture and frontend-backend integration
 - **android-native-dev** — Android native application development with Material Design 3
+- **ios-application-dev** — iOS application development with UIKit, SnapKit, and SwiftUI
+- **shader-dev** — GLSL shader techniques for stunning visual effects (ShaderToy-compatible)
 
 ## Usage
 
