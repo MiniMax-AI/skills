@@ -10,5 +10,6 @@
   "repository": "https://github.com/MiniMax-AI/skills",
   "license": "MIT",
   "keywords": ["skills", "frontend", "fullstack", "android", "minimax"],
+  "logo": "assets/logo.png",
   "skills": "./skills/"
 }
