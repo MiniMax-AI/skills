@@ -19,7 +19,8 @@
 ### Claude Code
 
 ```bash
-claude plugin install --from "https://github.com/MiniMax-AI/skills"
+claude plugin marketplace add https://github.com/MiniMax-AI/skills
+claude plugin install minimax-skills
 ```
 
 ### Cursor
