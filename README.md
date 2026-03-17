@@ -46,15 +46,14 @@ Restart Codex to discover the skills. See [`.codex/INSTALL.md`](.codex/INSTALL.m
 
 ### OpenCode
 
-Add to your `opencode.json`:
+```bash
+git clone https://github.com/MiniMax-AI/skills.git ~/.minimax-skills
 
-```json
-{
-  "plugin": ["minimax-skills@git+https://github.com/MiniMax-AI/skills.git"]
-}
+mkdir -p ~/.config/opencode/skills
+ln -s ~/.minimax-skills/skills/* ~/.config/opencode/skills/
 ```
 
-Restart OpenCode. See [`.opencode/INSTALL.md`](.opencode/INSTALL.md) for details.
+Restart OpenCode to discover the skills. See [`.opencode/INSTALL.md`](.opencode/INSTALL.md) for details.
 
 ## License
 

@@ -46,15 +46,14 @@ ln -s ~/.codex/minimax-skills/skills ~/.agents/skills/minimax-skills
 
 ### OpenCode
 
-在 `opencode.json` 中添加：
+```bash
+git clone https://github.com/MiniMax-AI/skills.git ~/.minimax-skills
 
-```json
-{
-  "plugin": ["minimax-skills@git+https://github.com/MiniMax-AI/skills.git"]
-}
+mkdir -p ~/.config/opencode/skills
+ln -s ~/.minimax-skills/skills/* ~/.config/opencode/skills/
 ```
 
-重启 OpenCode。详见 [`.opencode/INSTALL.md`](.opencode/INSTALL.md)。
+重启 OpenCode 以发现技能。详见 [`.opencode/INSTALL.md`](.opencode/INSTALL.md)。
 
 ## 许可证
 

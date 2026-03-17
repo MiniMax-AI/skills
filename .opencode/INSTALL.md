@@ -6,15 +6,29 @@
 
 ## Installation
 
-Add minimax-skills to the `plugin` array in your `opencode.json` (global or project-level):
+### macOS / Linux
 
-```json
-{
-  "plugin": ["minimax-skills@git+https://github.com/MiniMax-AI/skills.git"]
+```bash
+git clone https://github.com/MiniMax-AI/skills.git ~/.minimax-skills
+
+mkdir -p ~/.config/opencode/skills
+ln -s ~/.minimax-skills/skills/* ~/.config/opencode/skills/
+```
+
+### Windows (PowerShell)
+
+```powershell
+git clone https://github.com/MiniMax-AI/skills.git "$env:USERPROFILE\.minimax-skills"
+
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.config\opencode\skills"
+Get-ChildItem "$env:USERPROFILE\.minimax-skills\skills" -Directory | ForEach-Object {
+    New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\skills\$($_.Name)" -Target $_.FullName
 }
 ```
 
-Restart OpenCode. That's it — the plugin auto-installs and registers all skills.
+> **Note:** Creating symbolic links on Windows may require administrator privileges or Developer Mode enabled.
+
+Restart OpenCode to discover the skills.
 
 Verify by asking: "List available skills"
 
@@ -26,47 +40,37 @@ Verify by asking: "List available skills"
 - **ios-application-dev** — iOS application development with UIKit, SnapKit, and SwiftUI
 - **shader-dev** — GLSL shader techniques for stunning visual effects (ShaderToy-compatible)
 
-## Usage
-
-Use OpenCode's native `skill` tool:
-
-```
-use skill tool to list skills
-use skill tool to load minimax-skills/frontend-dev
-```
-
 ## Updating
 
-MiniMax Skills updates automatically when you restart OpenCode.
+```bash
+cd ~/.minimax-skills && git pull
+```
 
-To pin a specific version:
+Symlinks will automatically point to the updated content — no need to re-link.
 
-```json
-{
-  "plugin": ["minimax-skills@git+https://github.com/MiniMax-AI/skills.git#v1.0.0"]
-}
+## Uninstalling
+
+### macOS / Linux
+
+```bash
+rm -rf ~/.config/opencode/skills
+rm -rf ~/.minimax-skills
+```
+
+### Windows (PowerShell)
+
+```powershell
+Remove-Item -Recurse -Force "$env:USERPROFILE\.config\opencode\skills"
+Remove-Item -Recurse -Force "$env:USERPROFILE\.minimax-skills"
 ```
 
 ## Troubleshooting
 
-### Plugin not loading
-
-1. Check logs: `opencode run --print-logs "hello" 2>&1 | grep -i minimax`
-2. Verify the plugin line in your `opencode.json`
-3. Make sure you're running a recent version of OpenCode
-
 ### Skills not found
 
-1. Use `skill` tool to list what's discovered
-2. Check that the plugin is loading (see above)
-
-### Tool mapping
-
-When skills reference Claude Code tools:
-- `TodoWrite` → `todowrite`
-- `Task` with subagents → `@mention` syntax
-- `Skill` tool → OpenCode's native `skill` tool
-- File operations → your native tools
+1. Verify symlinks exist: `ls -la ~/.config/opencode/skills/`
+2. Each skill folder should contain a `SKILL.md` file
+3. Restart OpenCode after installation
 
 ## Getting Help
 
