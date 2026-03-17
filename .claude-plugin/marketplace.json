@@ -1,0 +1,18 @@
+{
+  "name": "minimax-skills",
+  "description": "MiniMax AI skills library for frontend, fullstack, and Android native development",
+  "owner": {
+    "name": "MiniMax AI"
+  },
+  "plugins": [
+    {
+      "name": "minimax-skills",
+      "description": "MiniMax AI skills library: frontend development, fullstack development, and Android native development",
+      "version": "1.0.0",
+      "source": "./",
+      "author": {
+        "name": "MiniMax AI"
+      }
+    }
+  ]
+}
