@@ -130,7 +130,7 @@ Consider: Purpose (corporate/educational/creative), Audience, Tone, Content Volu
 4. **Section Descriptions** — Optional one-line summaries
 5. **Visual Separators** — SVG dividers or spacing
 6. **Decorative Elements** — Subtle accent shapes
-7. **Page Number Badge (角标)** — **MANDATORY**
+7. **Page Number Badge** — **MANDATORY**
 
 ### Design Decisions
 
@@ -205,7 +205,7 @@ Consider: Purpose (corporate/educational/creative), Audience, Tone, Content Volu
 2. **Section Title** — Always required. Clear, concise.
 3. **Intro Text** — Optional 1-2 line description.
 4. **Decorative Elements** — SVG accent shapes (bars, lines, geometric blocks).
-5. **Page Number Badge (角标)** — **MANDATORY**.
+5. **Page Number Badge** — **MANDATORY**.
 
 ### Design Decisions
 
@@ -300,7 +300,7 @@ Pick a subtype based on the content. Each content slide belongs to exactly ONE s
 2. **Body Content** — Text, bullets, data, or comparisons based on subtype
 3. **Visual Element** — Image, chart, icon, or SVG shape — always required
 4. **Source / Caption** — When showing data or external content
-5. **Page Number Badge (角标)** — **MANDATORY**
+5. **Page Number Badge** — **MANDATORY**
 
 ### Design Decisions
 
@@ -379,7 +379,7 @@ Pick a subtype based on the content. Each content slide belongs to exactly ONE s
 3. **Call to Action** — Clear next steps (if applicable)
 4. **Contact Info** — Email, website, social handles (if provided)
 5. **Decorative Elements** — SVG accents for visual consistency
-6. **Page Number Badge (角标)** — **MANDATORY**
+6. **Page Number Badge** — **MANDATORY**
 
 ### Design Decisions
 

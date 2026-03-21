@@ -1,6 +1,13 @@
 ---
 name: pptx-generator
-description: "Generate, edit, and read PowerPoint presentations. Create from scratch with PptxGenJS (cover, TOC, content, section divider, summary slides), edit existing PPTX via XML workflows, or extract text with markitdown. Triggers: PPT, PPTX, PowerPoint, presentation, slide, 幻灯片, 演示文稿."
+description: "Generate, edit, and read PowerPoint presentations. Create from scratch with PptxGenJS (cover, TOC, content, section divider, summary slides), edit existing PPTX via XML workflows, or extract text with markitdown. Triggers: PPT, PPTX, PowerPoint, presentation, slide, deck, slides."
+license: MIT
+metadata:
+  version: "1.0"
+  category: productivity
+  sources:
+    - https://gitbrent.github.io/PptxGenJS/
+    - https://github.com/microsoft/markitdown
 ---
 
 # PPTX Generator & Editor
@@ -14,7 +21,7 @@ This skill handles all PowerPoint tasks: reading/analyzing existing presentation
 | Task | Approach |
 |------|----------|
 | Read/analyze content | `python -m markitdown presentation.pptx` |
-| Edit or create from template | See [Editing Presentations](editing.md) |
+| Edit or create from template | See [Editing Presentations](references/editing.md) |
 | Create from scratch | See [Creating from Scratch](#creating-from-scratch-workflow) below |
 
 | Item | Value |
@@ -32,11 +39,11 @@ This skill handles all PowerPoint tasks: reading/analyzing existing presentation
 
 | File | Contents |
 |------|----------|
-| [slide-types.md](slide-types.md) | 5 slide page types (Cover, TOC, Section Divider, Content, Summary) + additional layout patterns |
-| [design-system.md](design-system.md) | Color palettes, font reference, style recipes (Sharp/Soft/Rounded/Pill), typography & spacing |
-| [editing.md](editing.md) | Template-based editing workflow, XML manipulation, formatting rules, common pitfalls |
-| [pitfalls.md](pitfalls.md) | QA process, common mistakes, critical PptxGenJS pitfalls |
-| [pptxgenjs.md](pptxgenjs.md) | Complete PptxGenJS API reference |
+| [slide-types.md](references/slide-types.md) | 5 slide page types (Cover, TOC, Section Divider, Content, Summary) + additional layout patterns |
+| [design-system.md](references/design-system.md) | Color palettes, font reference, style recipes (Sharp/Soft/Rounded/Pill), typography & spacing |
+| [editing.md](references/editing.md) | Template-based editing workflow, XML manipulation, formatting rules, common pitfalls |
+| [pitfalls.md](references/pitfalls.md) | QA process, common mistakes, critical PptxGenJS pitfalls |
+| [pptxgenjs.md](references/pptxgenjs.md) | Complete PptxGenJS API reference |
 
 ---
 
@@ -59,19 +66,19 @@ Search to understand user requirements — topic, audience, purpose, tone, conte
 
 ### Step 2: Select Color Palette & Fonts
 
-Use the [Color Palette Reference](design-system.md#color-palette-reference) to select a palette matching the topic and audience. Use the [Font Reference](design-system.md#font-reference) to choose a font pairing.
+Use the [Color Palette Reference](references/design-system.md#color-palette-reference) to select a palette matching the topic and audience. Use the [Font Reference](references/design-system.md#font-reference) to choose a font pairing.
 
 ### Step 3: Select Design Style
 
-Use the [Style Recipes](design-system.md#style-recipes--视觉风格系统) to choose a visual style (Sharp, Soft, Rounded, or Pill) matching the presentation tone.
+Use the [Style Recipes](references/design-system.md#style-recipes) to choose a visual style (Sharp, Soft, Rounded, or Pill) matching the presentation tone.
 
 ### Step 4: Plan Slide Outline
 
-Classify **every slide** as exactly one of the [5 page types](slide-types.md). Plan the content and layout for each slide. Ensure visual variety — do NOT repeat the same layout across slides.
+Classify **every slide** as exactly one of the [5 page types](references/slide-types.md). Plan the content and layout for each slide. Ensure visual variety — do NOT repeat the same layout across slides.
 
 ### Step 5: Generate Slide JS Files
 
-Create one JS file per slide in `slides/` directory. Each file must export a synchronous `createSlide(pres, theme)` function. Follow the [Slide Output Format](#slide-output-format) and the type-specific guidance in [slide-types.md](slide-types.md). Generate up to 5 slides concurrently using subagents if available.
+Create one JS file per slide in `slides/` directory. Each file must export a synchronous `createSlide(pres, theme)` function. Follow the [Slide Output Format](#slide-output-format) and the type-specific guidance in [slide-types.md](references/slide-types.md). Generate up to 5 slides concurrently using subagents if available.
 
 **Tell each subagent:**
 1. File naming: `slides/slide-01.js`, `slides/slide-02.js`, etc.
@@ -81,7 +88,7 @@ Create one JS file per slide in `slides/` directory. Each file must export a syn
 5. Fonts: Chinese = Microsoft YaHei, English = Arial (or approved alternative)
 6. Colors: 6-char hex without # (e.g. `"FF0000"`)
 7. Must use the theme object contract (see [Theme Object Contract](#theme-object-contract))
-8. Must follow the [PptxGenJS API reference](pptxgenjs.md)
+8. Must follow the [PptxGenJS API reference](references/pptxgenjs.md)
 
 ### Step 6: Compile into Final PPTX
 
@@ -114,7 +121,7 @@ Run with: `cd slides && node compile.js`
 
 ### Step 7: QA (Required)
 
-See [QA Process](pitfalls.md#qa-process).
+See [QA Process](references/pitfalls.md#qa-process).
 
 ### Output Structure
 
