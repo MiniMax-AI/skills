@@ -1,0 +1,5 @@
+{
+  "name": "pptx-plugin",
+  "description": "PowerPoint generation and editing plugin with text-only QA (no vision required). Uses subagents for cover, TOC, content, section dividers, summary slides, and template-based PPT editing workflows.",
+  "version": "1.0.0"
+}

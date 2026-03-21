@@ -1,0 +1,22 @@
+{
+  "name": "pptx-plugin",
+  "owner": {
+    "name": "yuban",
+    "email": "yuban@minimaxi.com"
+  },
+  "metadata": {
+    "description": "Minimax PPT generation and editing plugin",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "pptx-plugin",
+      "description": "PPT generation and editing skills",
+      "source": "./",
+      "strict": true,
+      "skills": [
+        "./"
+      ]
+    }
+  ]
+}
