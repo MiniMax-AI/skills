@@ -16,6 +16,7 @@
 | `ios-application-dev` | iOS 应用开发指南，涵盖 UIKit、SnapKit 和 SwiftUI。触控目标、安全区域、导航模式、Dynamic Type、深色模式、无障碍、集合视图，符合 Apple HIG 规范。 |
 | `shader-dev` | 全面的 GLSL 着色器技术，用于创建惊艳的视觉效果 — 光线行进、SDF 建模、流体模拟、粒子系统、程序化生成、光照、后处理等。兼容 ShaderToy。 |
 | `gif-sticker-maker` | 将照片（人物、宠物、物品、Logo）转换为 4 张带字幕的动画 GIF 贴纸。Funko Pop / Pop Mart 盲盒风格，基于 MiniMax 图片与视频生成 API。 |
+| `podcast-creator` | 将文本脚本转换为播客节目。支持纯文本、Markdown 或 JSON 格式输入。通过 MiniMax TTS API 生成旁白，通过 MiniMax 音乐生成 API 创建片头/片尾音乐，使用 ffmpeg 合成最终音频。 |
 | `minimax-pdf` | 基于 token 化设计系统生成、填写和重排 PDF 文档。支持三种模式：CREATE（从零生成，15 种封面风格）、FILL（填写现有表单字段）、REFORMAT（将已有文档重排为新设计）。排版与配色由文档类型自动推导，输出即可打印。 |
 | `pptx-generator` | 生成、编辑和读取 PowerPoint 演示文稿。支持用 PptxGenJS 从零创建（封面、目录、内容、分节页、总结页），通过 XML 工作流编辑现有 PPTX，或用 markitdown 提取文本。 |
 | `minimax-xlsx` | 打开、创建、读取、分析、编辑或验证 Excel/电子表格文件（.xlsx、.xlsm、.csv、.tsv）。支持通过 XML 模板从零创建 xlsx、使用 pandas 读取分析、零格式损失编辑现有文件、公式重算与验证、专业财务格式化。 |
