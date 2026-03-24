@@ -1,6 +1,10 @@
 ---
 name: minimax-voice
 description: MiniMax voice synthesis and music generation API toolkit. Supports text-to-speech (sync/async), voice management (query/clone/design), and music generation. Use this skill when users need voice synthesis, voice cloning, or music generation.
+license: MIT
+metadata:
+  version: "1.0"
+  category: api-integration
 ---
 
 # MiniMax Voice Toolkit
