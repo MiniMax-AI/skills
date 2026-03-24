@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-MiniMax 音乐生成 API 客户端
-支持根据歌词和风格描述生成音乐
+MiniMax Music Generation API Client
+Supports generating music from lyrics and style descriptions
 API: POST /v1/music_generation
 """
 
@@ -14,30 +14,30 @@ from pathlib import Path
 
 
 def _get_default_output_dir() -> Path:
-    """获取默认音频输出目录"""
+    """Get default audio output directory"""
     return Path.cwd() / "assets" / "audios"
 
 
 class MiniMaxMusicGenerator:
-    """MiniMax 音乐生成客户端"""
+    """MiniMax Music Generation Client"""
 
     BASE_URL = "https://api.minimaxi.com/v1/music_generation"
 
-    # 支持的模型
+    # Supported models
     MODELS = ["music-2.5"]
 
-    # 支持的音频格式
+    # Supported audio formats
     FORMATS = ["mp3", "wav", "pcm"]
 
-    # 支持的采样率
+    # Supported sample rates
     SAMPLE_RATES = [16000, 24000, 32000, 44100]
 
-    # 支持的比特率
+    # Supported bitrates
     BITRATES = [32000, 64000, 128000, 256000]
 
     def __init__(self, api_key: Optional[str] = None, group_id: Optional[str] = None):
         """
-        初始化音乐生成客户端
+        Initialize music generation client
 
         Args:
             api_key: MiniMax API Key
@@ -54,11 +54,11 @@ class MiniMaxMusicGenerator:
                 "Or pass api_key parameter to MiniMaxMusicGenerator()."
             )
 
-        # 自动添加 Bearer 前缀（如果没有的话）
+        # Auto-add Bearer prefix if not present
         self.api_key = raw_key if raw_key.startswith("Bearer ") else f"Bearer {raw_key}"
 
     def _get_headers(self) -> Dict[str, str]:
-        """获取请求头"""
+        """Get request headers"""
         headers = {
             "Content-Type": "application/json",
             "Authorization": self.api_key
@@ -80,21 +80,21 @@ class MiniMaxMusicGenerator:
         aigc_watermark: bool = False,
     ) -> Dict[str, Any]:
         """
-        生成音乐
+        Generate music
 
         Args:
-            lyrics: 歌词内容，使用 \\n 分隔每行，支持 [Verse], [Chorus] 等结构标签
-            prompt: 音乐风格描述（music-2.5 可选，其他模型必填）
-            model: 模型版本，默认 music-2.5
-            stream: 是否流式传输，默认 False
-            output_format: 输出格式，hex 或 url，默认 hex
-            sample_rate: 采样率，默认 44100
-            bitrate: 比特率，默认 256000
-            format: 音频格式，默认 mp3
-            aigc_watermark: 是否添加水印，默认 False
+            lyrics: Lyrics content, use \\n to separate lines, supports [Verse], [Chorus] structure tags
+            prompt: Music style description (optional for music-2.5, required for other models)
+            model: Model version, default music-2.5
+            stream: Stream transmission, default False
+            output_format: Output format, hex or url, default hex
+            sample_rate: Sample rate, default 44100
+            bitrate: Bitrate, default 256000
+            format: Audio format, default mp3
+            aigc_watermark: Add watermark, default False
 
         Returns:
-            包含音频数据和元信息的字典
+            Dictionary containing audio data and metadata
         """
         if model not in self.MODELS:
             raise ValueError(f"Unsupported model: {model}. Choose from {self.MODELS}")
@@ -148,29 +148,29 @@ class MiniMaxMusicGenerator:
         output_dir: Optional[str] = None
     ) -> str:
         """
-        保存生成的音乐到文件
+        Save generated music to file
 
         Args:
-            result: API 返回的结果字典
-            filename: 文件名（不含路径），默认使用 music_{timestamp}.mp3
-            output_dir: 输出目录，默认使用 ./assets/audios
+            result: API response dictionary
+            filename: Filename (without path), default uses music_{timestamp}.mp3
+            output_dir: Output directory, default ./assets/audios
 
         Returns:
-            保存的文件完整路径
+            Full path of saved file
         """
         if "data" not in result or "audio" not in result["data"]:
             raise ValueError("Invalid result: missing audio data")
 
-        # 确定输出目录
+        # Determine output directory
         if output_dir is None:
             output_dir = _get_default_output_dir()
         else:
             output_dir = Path(output_dir)
 
-        # 确保目录存在
+        # Ensure directory exists
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # 确定文件名
+        # Determine filename
         if filename is None:
             import time
             ext = result.get("extra_info", {}).get("audio_format", "mp3")
@@ -201,22 +201,22 @@ class MiniMaxMusicGenerator:
         **kwargs
     ) -> Dict[str, Any]:
         """
-        使用结构化歌词生成音乐
+        Generate music using structured lyrics
 
         Args:
-            verses: 主歌歌词列表
-            choruses: 副歌歌词列表
-            prompt: 音乐风格描述
-            bridge: 桥段歌词（可选）
-            outro: 尾奏歌词（可选）
-            **kwargs: 其他 generate 参数
+            verses: List of verse lyrics
+            choruses: List of chorus lyrics
+            prompt: Music style description
+            bridge: Bridge lyrics (optional)
+            outro: Outro lyrics (optional)
+            **kwargs: Other generate parameters
 
         Returns:
-            API 响应结果
+            API response result
         """
         lyrics_parts = []
 
-        # 构建结构化歌词
+        # Build structured lyrics
         for i, verse in enumerate(verses):
             lyrics_parts.append(f"[Verse {i+1}]")
             lyrics_parts.append(verse)
@@ -239,12 +239,12 @@ class MiniMaxMusicGenerator:
 
 
 class APIError(Exception):
-    """API 错误异常"""
+    """API Error Exception"""
     pass
 
 
 def main():
-    """命令行使用示例"""
+    """Command-line usage example"""
     import argparse
 
     parser = argparse.ArgumentParser(description="MiniMax Music Generation")
@@ -255,7 +255,7 @@ def main():
 
     args = parser.parse_args()
 
-    # 读取歌词
+    # Read lyrics
     if os.path.isfile(args.lyrics):
         with open(args.lyrics, "r", encoding="utf-8") as f:
             lyrics = f.read()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-MiniMax 长文本语音合成（异步）API 客户端
-支持创建异步任务和查询任务状态
+MiniMax Long Text Text-to-Speech (Async) API Client
+Supports creating async tasks and querying task status
 API: POST /v1/t2a_async_v2, GET /v1/query/t2a_async_query_v2
 """
 
@@ -15,16 +15,16 @@ from pathlib import Path
 
 
 def _get_default_output_dir() -> Path:
-    """获取默认音频输出目录"""
+    """Get default audio output directory"""
     return Path.cwd() / "assets" / "audios"
 
 
 class MiniMaxAsyncTTS:
-    """MiniMax 异步文本转语音客户端"""
+    """MiniMax Async Text-to-Speech Client"""
 
     BASE_URL = "https://api.minimaxi.com"
 
-    # 支持的模型
+    # Supported models
     MODELS = [
         "speech-2.8-hd",
         "speech-2.8-turbo",
@@ -36,7 +36,7 @@ class MiniMaxAsyncTTS:
         "speech-01-turbo",
     ]
 
-    # 支持的情绪
+    # Supported emotions
     EMOTIONS = [
         "happy", "sad", "angry", "fearful",
         "disgusted", "surprised", "calm", "fluent", "whisper"
@@ -44,7 +44,7 @@ class MiniMaxAsyncTTS:
 
     def __init__(self, api_key: Optional[str] = None, group_id: Optional[str] = None):
         """
-        初始化异步 TTS 客户端
+        Initialize async TTS client
 
         Args:
             api_key: MiniMax API Key
@@ -61,11 +61,11 @@ class MiniMaxAsyncTTS:
                 "Or pass api_key parameter to MiniMaxAsyncTTS()."
             )
 
-        # 自动添加 Bearer 前缀（如果没有的话）
+        # Auto-add Bearer prefix if not present
         self.api_key = raw_key if raw_key.startswith("Bearer ") else f"Bearer {raw_key}"
 
     def _get_headers(self) -> Dict[str, str]:
-        """获取请求头"""
+        """Get request headers"""
         headers = {
             "Content-Type": "application/json",
             "Authorization": self.api_key
@@ -95,29 +95,29 @@ class MiniMaxAsyncTTS:
         aigc_watermark: bool = False,
     ) -> Dict[str, Any]:
         """
-        创建异步语音合成任务
+        Create async text-to-speech task
 
         Args:
-            text: 待合成文本，长度限制 < 50000 字符，与 text_file_id 二选一
-            text_file_id: 文本文件 ID，与 text 二选一
-            voice_id: 音色 ID（必填）
-            model: 模型版本
-            speed: 语速 [0.5, 2]
-            vol: 音量 (0, 10]
-            pitch: 语调 [-12, 12]
-            emotion: 情绪
-            sample_rate: 采样率
-            bitrate: 比特率
-            format: 音频格式
-            channel: 声道数
-            pronunciation_dict: 发音词典
-            language_boost: 语言增强
-            voice_modify: 声音效果器
-            continuous_sound: 连续声音优化
-            aigc_watermark: 是否添加水印
+            text: Text to synthesize, length limit < 50000 characters, exclusive with text_file_id
+            text_file_id: Text file ID, exclusive with text
+            voice_id: Voice ID (required)
+            model: Model version
+            speed: Speech speed [0.5, 2]
+            vol: Volume (0, 10]
+            pitch: Pitch [-12, 12]
+            emotion: Emotion
+            sample_rate: Sample rate
+            bitrate: Bitrate
+            format: Audio format
+            channel: Channel count
+            pronunciation_dict: Pronunciation dictionary
+            language_boost: Language boost
+            voice_modify: Voice effects
+            continuous_sound: Continuous sound optimization
+            aigc_watermark: Add watermark
 
         Returns:
-            包含 task_id、file_id、task_token 的字典
+            Dictionary containing task_id, file_id, task_token
         """
         if not text and not text_file_id:
             raise ValueError("Either text or text_file_id must be provided")
@@ -190,13 +190,13 @@ class MiniMaxAsyncTTS:
 
     def query_task(self, task_id: Union[str, int]) -> Dict[str, Any]:
         """
-        查询异步任务状态
+        Query async task status
 
         Args:
-            task_id: 任务 ID
+            task_id: Task ID
 
         Returns:
-            任务状态信息，包含 status、file_id 等
+            Task status information, includes status, file_id, etc.
         """
         response = requests.get(
             f"{self.BASE_URL}/v1/query/t2a_async_query_v2",
@@ -226,19 +226,19 @@ class MiniMaxAsyncTTS:
         timeout: float = 600.0
     ) -> Dict[str, Any]:
         """
-        等待任务完成
+        Wait for task completion
 
         Args:
-            task_id: 任务 ID
-            poll_interval: 轮询间隔（秒），默认 5 秒
-            timeout: 超时时间（秒），默认 600 秒
+            task_id: Task ID
+            poll_interval: Polling interval (seconds), default 5 seconds
+            timeout: Timeout (seconds), default 600 seconds
 
         Returns:
-            任务结果
+            Task result
 
         Raises:
-            TimeoutError: 超时未完成
-            APIError: 任务失败
+            TimeoutError: Timeout not completed
+            APIError: Task failed
         """
         start_time = time.time()
 
@@ -265,34 +265,34 @@ class MiniMaxAsyncTTS:
         file_type: str = "audio"
     ) -> str:
         """
-        下载任务结果文件
+        Download task result file
 
         Args:
-            file_id: 文件 ID
-            filename: 文件名（不含路径），默认使用 tts_async_{file_id}.{ext}
-            output_dir: 输出目录，默认使用 ./assets/audios
-            file_type: 文件类型 (audio/subtitle/extra_info)
+            file_id: File ID
+            filename: Filename (without path), default uses tts_async_{file_id}.{ext}
+            output_dir: Output directory, default ./assets/audios
+            file_type: File type (audio/subtitle/extra_info)
 
         Returns:
-            保存的文件完整路径
+            Full path of saved file
         """
-        # 确定输出目录
+        # Determine output directory
         if output_dir is None:
             output_dir = _get_default_output_dir()
         else:
             output_dir = Path(output_dir)
 
-        # 确保目录存在
+        # Ensure directory exists
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # 确定文件名
+        # Determine filename
         if filename is None:
             ext = "mp3" if file_type == "audio" else file_type
             filename = f"tts_async_{file_id}.{ext}"
 
         output_path = output_dir / filename
 
-        # 第一步：获取文件元数据和下载 URL
+        # Step 1: Get file metadata and download URL
         response = requests.get(
             f"{self.BASE_URL}/v1/files/retrieve",
             headers=self._get_headers(),
@@ -308,12 +308,12 @@ class MiniMaxAsyncTTS:
                 f"(code: {result['base_resp']['status_code']})"
             )
 
-        # 提取下载 URL
+        # Extract download URL
         download_url = result.get("file", {}).get("download_url")
         if not download_url:
             raise APIError(f"No download URL in response for file_id: {file_id}")
 
-        # 第二步：从下载 URL 获取实际文件内容
+        # Step 2: Get actual file content from download URL
         audio_response = requests.get(download_url, timeout=120)
         audio_response.raise_for_status()
 
@@ -327,12 +327,12 @@ class MiniMaxAsyncTTS:
 
 
 class APIError(Exception):
-    """API 错误异常"""
+    """API Error Exception"""
     pass
 
 
 def main():
-    """命令行使用示例"""
+    """Command-line usage example"""
     import argparse
 
     parser = argparse.ArgumentParser(description="MiniMax Async Text-to-Speech")
@@ -346,7 +346,7 @@ def main():
 
     client = MiniMaxAsyncTTS()
 
-    # 创建任务
+    # Create task
     print("Creating async task...")
     task = client.create_task(
         text=args.text,

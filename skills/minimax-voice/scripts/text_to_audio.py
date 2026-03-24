@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-MiniMax 同步语音合成 API 客户端
+MiniMax Synchronous Text-to-Speech API Client
 API: POST /v1/t2a_v2
 
-字符限制: 最多 10000 字符，超过请使用异步语音合成 (text_to_audio_async.py)
+Character Limit: Maximum 10,000 characters. Use async API (text_to_audio_async.py) for longer texts.
 """
 
 import os
@@ -13,19 +13,19 @@ import warnings
 from typing import Optional, Dict, Any
 from pathlib import Path
 
-# 过滤 urllib3 关于 OpenSSL 的警告（macOS 使用 LibreSSL 是正常的）
+# Filter urllib3 warnings about OpenSSL (macOS using LibreSSL is normal)
 warnings.filterwarnings("ignore", category=UserWarning, module="urllib3")
 
 import requests
 
 
 class MiniMaxTTS:
-    """MiniMax 文本转语音客户端"""
+    """MiniMax Text-to-Speech Client"""
 
     BASE_URL = "https://api.minimaxi.com/v1/t2a_v2"
     BACKUP_URL = "https://api-bj.minimaxi.com/v1/t2a_v2"
 
-    # 支持的模型
+    # Supported models
     MODELS = [
         "speech-2.8-hd",
         "speech-2.8-turbo",
@@ -37,28 +37,28 @@ class MiniMaxTTS:
         "speech-01-turbo",
     ]
 
-    # 支持的情绪
+    # Supported emotions
     EMOTIONS = [
         "happy", "sad", "angry", "fearful",
         "disgusted", "surprised", "calm", "fluent", "whisper"
     ]
 
-    # 支持的音频格式
+    # Supported audio formats
     FORMATS = ["mp3", "pcm", "flac", "wav"]
 
-    # 支持的采样率
+    # Supported sample rates
     SAMPLE_RATES = [8000, 16000, 22050, 24000, 32000, 44100]
 
-    # 支持的比特率
+    # Supported bitrates
     BITRATES = [32000, 64000, 128000, 256000]
 
     def __init__(self, api_key: Optional[str] = None, group_id: Optional[str] = None):
         """
-        初始化 TTS 客户端
+        Initialize TTS client
 
         Args:
-            api_key: MiniMax API Key，默认从环境变量 MINIMAX_API_KEY 读取
-            group_id: MiniMax Group ID，默认从环境变量 MINIMAX_GROUP_ID 读取
+            api_key: MiniMax API Key, defaults to MINIMAX_API_KEY env var
+            group_id: MiniMax Group ID, defaults to MINIMAX_GROUP_ID env var
         """
         raw_key = api_key or os.getenv("MINIMAX_API_KEY")
         self.group_id = group_id or os.getenv("MINIMAX_GROUP_ID")
@@ -71,11 +71,11 @@ class MiniMaxTTS:
                 "Or pass api_key parameter to MiniMaxTTS()."
             )
 
-        # 自动添加 Bearer 前缀（如果没有的话）
+        # Auto-add Bearer prefix if not present
         self.api_key = raw_key if raw_key.startswith("Bearer ") else f"Bearer {raw_key}"
 
     def _get_headers(self) -> Dict[str, str]:
-        """获取请求头"""
+        """Get request headers"""
         headers = {
             "Content-Type": "application/json",
             "Authorization": self.api_key
@@ -104,30 +104,30 @@ class MiniMaxTTS:
         aigc_watermark: bool = False,
     ) -> Dict[str, Any]:
         """
-        同步语音合成（非流式）
+        Synchronous text-to-speech (non-streaming)
 
         Args:
-            text: 待合成文本，长度限制 < 10000 字符
-            voice_id: 音色 ID
-            model: 模型版本，默认 speech-2.8-hd
-            speed: 语速，范围 [0.5, 2]，默认 1.0
-            vol: 音量，范围 (0, 10]，默认 1.0
-            pitch: 语调，范围 [-12, 12]，默认 0
-            emotion: 情绪，可选 happy/sad/angry/fearful/disgusted/surprised/calm/fluent/whisper
-            sample_rate: 采样率，默认 32000
-            bitrate: 比特率，默认 128000
-            format: 音频格式，默认 mp3
-            channel: 声道数，1=单声道，2=双声道，默认 1
-            pronunciation_dict: 发音词典，如 {"tone": ["处理/(chu3)(li3)"]}
-            subtitle_enable: 是否开启字幕，默认 False
-            continuous_sound: 连续声音优化，仅 speech-2.8 模型支持，默认 False
-            output_format: 输出格式，hex 或 url，默认 hex
-            language_boost: 语言增强，如 Chinese/English/auto
-            voice_modify: 声音效果器设置
-            aigc_watermark: 是否添加水印，默认 False
+            text: Text to synthesize, length limit < 10000 characters
+            voice_id: Voice ID
+            model: Model version, default speech-2.8-hd
+            speed: Speech speed, range [0.5, 2], default 1.0
+            vol: Volume, range (0, 10], default 1.0
+            pitch: Pitch, range [-12, 12], default 0
+            emotion: Emotion, optional happy/sad/angry/fearful/disgusted/surprised/calm/fluent/whisper
+            sample_rate: Sample rate, default 32000
+            bitrate: Bitrate, default 128000
+            format: Audio format, default mp3
+            channel: Channel count, 1=mono, 2=stereo, default 1
+            pronunciation_dict: Pronunciation dict, e.g. {"tone": ["process/(pro1)(cess2)"]}
+            subtitle_enable: Enable subtitles, default False
+            continuous_sound: Continuous sound optimization, only for speech-2.8 models, default False
+            output_format: Output format, hex or url, default hex
+            language_boost: Language boost, e.g. Chinese/English/auto
+            voice_modify: Voice effects settings
+            aigc_watermark: Add watermark, default False
 
         Returns:
-            包含音频数据和元信息的字典
+            Dictionary containing audio data and metadata
         """
         if model not in self.MODELS:
             raise ValueError(f"Unsupported model: {model}. Choose from {self.MODELS}")
@@ -169,7 +169,7 @@ class MiniMaxTTS:
         if voice_modify:
             payload["voice_modify"] = voice_modify
 
-        # 尝试主 URL，失败时尝试备用 URL
+        # Try primary URL, fallback to backup URL on failure
         urls_to_try = [self.BASE_URL, self.BACKUP_URL]
         last_error = None
 
@@ -187,11 +187,11 @@ class MiniMaxTTS:
                 if result.get("base_resp", {}).get("status_code") == 0:
                     return result
 
-                # API 返回了错误
+                # API returned an error
                 error_code = result.get("base_resp", {}).get("status_code")
                 error_msg = result.get("base_resp", {}).get("status_msg", "Unknown error")
 
-                # 认证错误不需要重试
+                # Authentication errors don't need retry
                 if error_code == 1004:
                     raise APIError(
                         f"Authentication failed: {error_msg}\n"
@@ -207,7 +207,7 @@ class MiniMaxTTS:
             except requests.exceptions.RequestException as e:
                 last_error = APIError(f"Request failed for {url}: {str(e)}")
 
-        # 所有 URL 都失败了
+        # All URLs failed
         raise last_error or APIError("All API endpoints failed")
 
         return result
@@ -219,29 +219,29 @@ class MiniMaxTTS:
         output_dir: Optional[str] = None
     ) -> str:
         """
-        保存音频数据到文件
+        Save audio data to file
 
         Args:
-            result: API 返回的结果字典
-            filename: 文件名（不含路径），默认使用 tts_{timestamp}.mp3
-            output_dir: 输出目录，默认使用 ./assets/audios
+            result: API response dictionary
+            filename: Filename (without path), default uses tts_{timestamp}.mp3
+            output_dir: Output directory, default ./assets/audios
 
         Returns:
-            保存的文件完整路径
+            Full path of saved file
         """
         if "data" not in result or "audio" not in result["data"]:
             raise ValueError("Invalid result: missing audio data")
 
-        # 确定输出路径
+        # Determine output path
         if output_dir is None:
             output_dir = Path.cwd() / "assets" / "audios"
         else:
             output_dir = Path(output_dir)
 
-        # 确保目录存在
+        # Ensure directory exists
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # 确定文件名
+        # Determine filename
         if filename is None:
             import time
             ext = result.get("extra_info", {}).get("audio_format", "mp3")
@@ -266,12 +266,12 @@ class MiniMaxTTS:
 
 
 class APIError(Exception):
-    """API 错误异常"""
+    """API Error Exception"""
     pass
 
 
 def main():
-    """命令行使用示例"""
+    """Command-line usage example"""
     import argparse
     import sys
 
@@ -279,24 +279,24 @@ def main():
         description="MiniMax Text-to-Speech",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-示例:
-  # 基础使用
-  python3 text_to_audio.py -t "你好世界" -v tianxin_xiaoling
+Examples:
+  # Basic usage
+  python3 text_to_audio.py -t "Hello world" -v tianxin_xiaoling
 
-  # 指定输出路径和语速
-  python3 text_to_audio.py -t "你好世界" -v male-qn-qingse -o hello.mp3 --speed 0.8
+  # Specify output path and speed
+  python3 text_to_audio.py -t "Hello world" -v male-qn-qingse -o hello.mp3 --speed 0.8
 
-  # 添加情绪
-  python3 text_to_audio.py -t "太棒了！" -v female-shaonv --emotion happy
+  # Add emotion
+  python3 text_to_audio.py -t "Great!" -v female-shaonv --emotion happy
 
-常用音色:
-  tianxin_xiaoling    - 女声-甜心小玲
-  female-shaonv       - 女声-少女
-  male-qn-qingse      - 男声-青年-青涩
-  audiobook_male_1    - 有声书男声
+Common Voices:
+  tianxin_xiaoling    - Female-Sweet Ling
+  female-shaonv       - Female-Young
+  male-qn-qingse      - Male-Youth-Innocent
+  audiobook_male_1    - Audiobook Male
 
-环境变量:
-  MINIMAX_API_KEY     - API Key (格式: Bearer sk-api-xxxxx 或直接 sk-api-xxxxx)
+Environment Variables:
+  MINIMAX_API_KEY     - API Key (format: Bearer sk-api-xxxxx or sk-api-xxxxx directly)
         """
     )
     parser.add_argument("--text", "-t", required=True, help="Text to synthesize")

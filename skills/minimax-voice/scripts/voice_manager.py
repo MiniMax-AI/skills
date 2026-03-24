@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-MiniMax 音色管理 API 客户端
-支持查询音色、音色复刻、音色设计、文件上传
+MiniMax Voice Management API Client
+Supports voice query, voice cloning, voice design, file upload
 APIs:
-- POST /v1/get_voice (查询音色)
-- POST /v1/voice_clone (音色复刻)
-- POST /v1/voice_design (音色设计)
-- POST /v1/files/upload (文件上传)
+- POST /v1/get_voice (Query voices)
+- POST /v1/voice_clone (Voice cloning)
+- POST /v1/voice_design (Voice design)
+- POST /v1/files/upload (File upload)
 """
 
 import os
@@ -18,16 +18,16 @@ from pathlib import Path
 
 
 def _get_default_output_dir() -> Path:
-    """获取默认音频输出目录"""
+    """Get default audio output directory"""
     return Path.cwd() / "assets" / "audios"
 
 
 class MiniMaxVoiceManager:
-    """MiniMax 音色管理客户端"""
+    """MiniMax Voice Management Client"""
 
     BASE_URL = "https://api.minimaxi.com"
 
-    # 支持的模型
+    # Supported models
     MODELS = [
         "speech-2.8-hd",
         "speech-2.8-turbo",
@@ -39,17 +39,17 @@ class MiniMaxVoiceManager:
         "speech-01-turbo",
     ]
 
-    # 音效选项
+    # Sound effect options
     SOUND_EFFECTS = [
-        "spacious_echo",      # 空旷回音
-        "auditorium_echo",    # 礼堂广播
-        "lofi_telephone",     # 电话失真
-        "robotic",            # 电音
+        "spacious_echo",      # Spacious echo
+        "auditorium_echo",    # Auditorium broadcast
+        "lofi_telephone",     # Telephone distortion
+        "robotic",            # Robotic/electronic
     ]
 
     def __init__(self, api_key: Optional[str] = None, group_id: Optional[str] = None):
         """
-        初始化音色管理客户端
+        Initialize voice management client
 
         Args:
             api_key: MiniMax API Key
@@ -66,11 +66,11 @@ class MiniMaxVoiceManager:
                 "Or pass api_key parameter to MiniMaxVoiceManager()."
             )
 
-        # 自动添加 Bearer 前缀（如果没有的话）
+        # Auto-add Bearer prefix if not present
         self.api_key = raw_key if raw_key.startswith("Bearer ") else f"Bearer {raw_key}"
 
     def _get_headers(self, content_type: str = "application/json") -> Dict[str, str]:
-        """获取请求头"""
+        """Get request headers"""
         headers = {
             "Authorization": self.api_key
         }
@@ -80,20 +80,20 @@ class MiniMaxVoiceManager:
             headers["X-Minimax-Group-Id"] = self.group_id
         return headers
 
-    # ============ 查询音色 ============
+    # ============ Voice Query ============
 
     def list_voices(
         self,
         voice_type: str = "all"
     ) -> Dict[str, List[Dict[str, Any]]]:
         """
-        查询可用音色
+        Query available voices
 
         Args:
-            voice_type: 音色类型，可选 system/voice_cloning/voice_generation/all
+            voice_type: Voice type, options system/voice_cloning/voice_generation/all
 
         Returns:
-            包含各类音色的字典
+            Dictionary containing various voice types
         """
         if voice_type not in ["system", "voice_cloning", "voice_generation", "all"]:
             raise ValueError(f"Invalid voice_type: {voice_type}")
@@ -120,18 +120,18 @@ class MiniMaxVoiceManager:
         }
 
     def get_system_voices(self) -> List[Dict[str, Any]]:
-        """获取系统音色列表"""
+        """Get system voice list"""
         return self.list_voices("system")["system"]
 
     def get_cloned_voices(self) -> List[Dict[str, Any]]:
-        """获取复刻音色列表"""
+        """Get cloned voice list"""
         return self.list_voices("voice_cloning")["voice_cloning"]
 
     def get_generated_voices(self) -> List[Dict[str, Any]]:
-        """获取文生音色列表"""
+        """Get text-to-voice list"""
         return self.list_voices("voice_generation")["voice_generation"]
 
-    # ============ 文件上传 ============
+    # ============ File Upload ============
 
     def upload_voice_clone_file(
         self,
@@ -139,14 +139,14 @@ class MiniMaxVoiceManager:
         purpose: str = "voice_clone"
     ) -> Dict[str, Any]:
         """
-        上传音色复刻音频文件
+        Upload voice cloning audio file
 
         Args:
-            file_path: 音频文件路径
-            purpose: 文件用途，voice_clone 或 prompt_audio
+            file_path: Audio file path
+            purpose: File purpose, voice_clone or prompt_audio
 
         Returns:
-            包含 file_id 的字典
+            Dictionary containing file_id
         """
         file_path = Path(file_path)
         if not file_path.exists():
@@ -182,17 +182,17 @@ class MiniMaxVoiceManager:
 
     def upload_prompt_audio(self, file_path: Union[str, Path]) -> Dict[str, Any]:
         """
-        上传示例音频（用于增强复刻效果）
+        Upload sample audio (for enhanced cloning effect)
 
         Args:
-            file_path: 音频文件路径（需 < 8 秒）
+            file_path: Audio file path (must be < 8 seconds)
 
         Returns:
-            包含 file_id 的字典
+            Dictionary containing file_id
         """
         return self.upload_voice_clone_file(file_path, purpose="prompt_audio")
 
-    # ============ 音色复刻 ============
+    # ============ Voice Cloning ============
 
     def clone_voice(
         self,
@@ -208,22 +208,22 @@ class MiniMaxVoiceManager:
         continuous_sound: bool = False,
     ) -> Dict[str, Any]:
         """
-        音色快速复刻
+        Quick voice cloning
 
         Args:
-            file_id: 上传的音频文件 ID
-            voice_id: 自定义的音色 ID（8-256 字符，首字符为字母，允许数字、字母、-、_）
-            text: 试听文本（可选，若提供则生成试听音频）
-            model: 试听使用的模型（提供 text 时必填）
-            clone_prompt: 示例音频配置 {"prompt_audio": file_id, "prompt_text": text}
-            language_boost: 语言增强
-            need_noise_reduction: 是否降噪
-            need_volume_normalization: 是否音量归一化
-            aigc_watermark: 是否添加水印
-            continuous_sound: 连续声音优化
+            file_id: Uploaded audio file ID
+            voice_id: Custom voice ID (8-256 chars, starts with letter, allows alphanumeric, -, _)
+            text: Preview text (optional, generates preview audio if provided)
+            model: Model for preview (required when text is provided)
+            clone_prompt: Sample audio config {"prompt_audio": file_id, "prompt_text": text}
+            language_boost: Language boost
+            need_noise_reduction: Enable noise reduction
+            need_volume_normalization: Enable volume normalization
+            aigc_watermark: Add watermark
+            continuous_sound: Continuous sound optimization
 
         Returns:
-            复刻结果，包含 demo_audio（如有试听）
+            Cloning result, includes demo_audio (if preview provided)
         """
         if text and not model:
             raise ValueError("model is required when text is provided for preview")
@@ -271,7 +271,7 @@ class MiniMaxVoiceManager:
             "input_sensitive": result.get("input_sensitive"),
         }
 
-    # ============ 音色设计 ============
+    # ============ Voice Design ============
 
     def design_voice(
         self,
@@ -281,16 +281,16 @@ class MiniMaxVoiceManager:
         aigc_watermark: bool = False,
     ) -> Dict[str, Any]:
         """
-        音色设计（文生音色）
+        Voice design (text-to-voice)
 
         Args:
-            prompt: 音色描述文本
-            preview_text: 试听音频文本
-            voice_id: 自定义音色 ID（可选，不传则自动生成）
-            aigc_watermark: 是否添加水印
+            prompt: Voice description text
+            preview_text: Preview audio text
+            voice_id: Custom voice ID (optional, auto-generated if not provided)
+            aigc_watermark: Add watermark
 
         Returns:
-            包含 voice_id 和 trial_audio 的字典
+            Dictionary containing voice_id and trial_audio
         """
         payload: Dict[str, Any] = {
             "prompt": prompt,
@@ -328,30 +328,30 @@ class MiniMaxVoiceManager:
         output_dir: Optional[str] = None
     ) -> str:
         """
-        保存试听音频
+        Save trial audio
 
         Args:
-            result: design_voice 返回的结果
-            filename: 文件名（不含路径），默认使用 trial_{voice_id}.mp3
-            output_dir: 输出目录，默认使用 ./assets/audios
+            result: Result from design_voice
+            filename: Filename (without path), default uses trial_{voice_id}.mp3
+            output_dir: Output directory, default ./assets/audios
 
         Returns:
-            保存的文件完整路径
+            Full path of saved file
         """
         trial_audio_hex = result.get("trial_audio")
         if not trial_audio_hex:
             raise ValueError("No trial audio in result")
 
-        # 确定输出目录
+        # Determine output directory
         if output_dir is None:
             output_dir = _get_default_output_dir()
         else:
             output_dir = Path(output_dir)
 
-        # 确保目录存在
+        # Ensure directory exists
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # 确定文件名
+        # Determine filename
         if filename is None:
             voice_id = result.get("voice_id", "unknown")
             filename = f"trial_{voice_id}.mp3"
@@ -367,12 +367,12 @@ class MiniMaxVoiceManager:
 
 
 class APIError(Exception):
-    """API 错误异常"""
+    """API Error Exception"""
     pass
 
 
 def main():
-    """命令行使用示例"""
+    """Command-line usage example"""
     import argparse
 
     parser = argparse.ArgumentParser(description="MiniMax Voice Manager")

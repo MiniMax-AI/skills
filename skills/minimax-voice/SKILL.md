@@ -1,89 +1,88 @@
 ---
 name: minimax-voice
-description: MiniMax 语音合成与音乐生成 API 工具集。支持文本转语音（同步/异步）、音色管理（查询/复刻/设计）、音乐生成。当用户需要使用进行语音合成、音色复刻、音乐生成时使用此 skill。
+description: MiniMax voice synthesis and music generation API toolkit. Supports text-to-speech (sync/async), voice management (query/clone/design), and music generation. Use this skill when users need voice synthesis, voice cloning, or music generation.
 ---
 
-# MiniMax 语音工具集
+# MiniMax Voice Toolkit
 
-MiniMax 语音合成与音乐生成 API 的 Python 客户端工具集。
+Python client toolkit for MiniMax voice synthesis and music generation APIs.
 
-## 环境变量
+## Environment Variables
 
-**⚠️ 重要：每次使用前必须先检查是否已设置 API Key 环境变量，否则先执行下面的配置再进行脚本调用。**
+**⚠️ Important: Before each use, check if the API Key environment variable is set. If not, configure it first before calling the scripts.**
 
 ```bash
 export MINIMAX_API_KEY="your_api_key_here"
 ```
 
-**默认输出目录**: 所有生成的音频自动保存到 `./assets/audios/` 目录（自动创建）
+**Default Output Directory**: All generated audio files are automatically saved to `./assets/audios/` (auto-created)
 
-## 脚本文件
+## Scripts
 
-| 脚本 | 功能 | API |
+| Script | Function | API |
 |-----|------|-----|
-| `scripts/text_to_audio.py` | 同步语音合成 | `/v1/t2a_v2` |
-| `scripts/text_to_audio_async.py` | 异步语音合成 | `/v1/t2a_async_v2` |
-| `scripts/voice_manager.py` | 音色管理 | `/v1/get_voice`, `/v1/voice_clone`, `/v1/voice_design` |
-| `scripts/music_generation.py` | 音乐生成 | `/v1/music_generation` |
+| `scripts/text_to_audio.py` | Synchronous TTS | `/v1/t2a_v2` |
+| `scripts/text_to_audio_async.py` | Asynchronous TTS | `/v1/t2a_async_v2` |
+| `scripts/voice_manager.py` | Voice Management | `/v1/get_voice`, `/v1/voice_clone`, `/v1/voice_design` |
+| `scripts/music_generation.py` | Music Generation | `/v1/music_generation` |
 
-## 语音合成字符限制
+## Character Limits
 
-| 脚本 | 字符限制 | 适用场景 |
+| Script | Character Limit | Use Case |
 |------|---------|---------|
-| `text_to_audio.py` (同步) | ≤ 10,000 字符 | 短文本、实时合成 |
-| `text_to_audio_async.py` (异步) | 10,001 - 50,000 字符 | 长文本、有声书 |
+| `text_to_audio.py` (sync) | ≤ 10,000 chars | Short text, real-time synthesis |
+| `text_to_audio_async.py` (async) | 10,001 - 50,000 chars | Long text, audiobooks |
 
-**注意**: 超过 50,000 字符的文本需要拆分成多个请求处理。
+**Note**: Texts exceeding 50,000 characters need to be split into multiple requests.
 
-## 使用示例
+## Usage Examples
 
 ```bash
-# 同步语音合成（≤ 10000 字符）
-python3 scripts/text_to_audio.py -t "你好" -v male-qn-qingse -o output.mp3
+# Synchronous TTS (≤ 10000 chars)
+python3 scripts/text_to_audio.py -t "Hello" -v male-qn-qingse -o output.mp3
 
-# 异步语音合成（10001-50000 字符）
-python3 scripts/text_to_audio_async.py -t "长文本..." -v audiobook_male_1 -w -o output.mp3
+# Asynchronous TTS (10001-50000 chars)
+python3 scripts/text_to_audio_async.py -t "Long text..." -v audiobook_male_1 -w -o output.mp3
 
-# 查询音色
+# List voices
 python3 scripts/voice_manager.py list
 
-# 音色复刻
+# Clone voice
 python3 scripts/voice_manager.py clone --file voice.mp3 --voice-id MyVoice001
 
-# 音色设计
-python3 scripts/voice_manager.py design --prompt "温暖女声" --preview "试听文本" -o trial.mp3
+# Design voice
+python3 scripts/voice_manager.py design --prompt "Warm female voice" --preview "Preview text" -o trial.mp3
 
-# 音乐生成
-python3 scripts/music_generation.py -l lyrics.txt -p "流行音乐,轻快" -o song.mp3
+# Generate music
+python3 scripts/music_generation.py -l lyrics.txt -p "Pop music, upbeat" -o song.mp3
 ```
 
-## 支持的模型
+## Supported Models
 
-### 语音合成
-- `speech-2.8-hd` - 最新高清模型，支持语气词标签
-- `speech-2.8-turbo` - 最新高速模型
+### Text-to-Speech
+- `speech-2.8-hd` - Latest HD model, supports interjection tags
+- `speech-2.8-turbo` - Latest high-speed model
 
+### Music Generation
+- `music-2.5` - Latest music generation model
 
-### 音乐生成
-- `music-2.5` - 最新音乐生成模型
+## Common Voice IDs
 
-## 常用音色 ID
+- `male-qn-qingse` - Male-Youth-Innocent
+- `female-shaonv` - Female-Young
+- `tianxin_xiaoling` - Female-Sweet Ling
+- `audiobook_male_1` - Audiobook Male
+- `Chinese (Mandarin)_News_Anchor` - News Anchor
 
-- `male-qn-qingse` - 男声-青年-青涩
-- `female-shaonv` - 女声-少女
-- `tianxin_xiaoling` - 女声-甜心小玲
-- `audiobook_male_1` - 有声书男声
-- `Chinese (Mandarin)_News_Anchor` - 新闻主播
+Full list available via `voice_manager.list_voices()`.
 
-完整列表使用 `voice_manager.list_voices()` 查询。
+## Error Codes
 
-## 错误码
-
-- `0` - 成功
-- `1000` - 未知错误
-- `1001` - 超时
-- `1002` - 触发限流
-- `1004` - 鉴权失败
-- `1008` - 余额不足
-- `2013` - 参数错误
-- `2038` - 无复刻权限
+- `0` - Success
+- `1000` - Unknown error
+- `1001` - Timeout
+- `1002` - Rate limit triggered
+- `1004` - Authentication failed
+- `1008` - Insufficient balance
+- `2013` - Parameter error
+- `2038` - No cloning permission
