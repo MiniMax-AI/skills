@@ -24,6 +24,27 @@ function Fail  { Write-Host "[FAIL]  $args" -ForegroundColor Red }
 function Info  { Write-Host "[INFO]  $args" -ForegroundColor Cyan }
 function Step  { Write-Host "`n=== $args ===" -ForegroundColor Blue }
 
+function Add-DefaultRestoreSources {
+    param(
+        [string[]]$Sources = @()
+    )
+
+    $result = @($Sources)
+    $result += $DefaultNugetSource
+
+    $localFeeds = @(
+        (Join-Path $DotnetDir "packages"),
+        (Join-Path $ProjectDir "assets/nuget")
+    )
+    foreach ($feed in $localFeeds) {
+        if (Test-Path $feed) {
+            $result += $feed
+        }
+    }
+
+    return $result
+}
+
 function Get-RestoreSources {
     $sources = @()
 
@@ -34,21 +55,21 @@ function Get-RestoreSources {
                 $sources += $trimmed
             }
         }
-    } else {
-        $sources += $DefaultNugetSource
 
-        $localFeeds = @(
-            (Join-Path $DotnetDir "packages"),
-            (Join-Path $ProjectDir "assets/nuget")
-        )
-        foreach ($feed in $localFeeds) {
-            if (Test-Path $feed) {
-                $sources += $feed
+        if ($sources.Count -gt 0) {
+            return [pscustomobject]@{
+                Mode = "custom"
+                Sources = $sources
             }
         }
+
+        Warn "MINIMAX_DOCX_NUGET_SOURCES contained no valid entries; falling back to default NuGet sources."
     }
 
-    return $sources
+    return [pscustomobject]@{
+        Mode = "default"
+        Sources = (Add-DefaultRestoreSources)
+    }
 }
 
 function Get-RestoreArgs {
@@ -193,8 +214,9 @@ if (-not $Minimal) {
 Step "Checking NuGet configuration"
 
 $nugetSources = & dotnet nuget list source 2>$null
-$restoreSources = Get-RestoreSources
-if ($env:MINIMAX_DOCX_NUGET_SOURCES) {
+$restoreSourceConfig = Get-RestoreSources
+$restoreSources = $restoreSourceConfig.Sources
+if ($restoreSourceConfig.Mode -eq "custom") {
     Info "Using custom restore source(s) from MINIMAX_DOCX_NUGET_SOURCES"
     foreach ($source in $restoreSources) {
         Log "restore source: $source"
@@ -276,7 +298,7 @@ if ($LASTEXITCODE -ne 0) {
     Fail "  - Custom/local feed missing required packages"
     Fail "  - Insufficient disk space"
     Fail "Configured source(s): $($restoreSources -join ', ')"
-    Fail "Try: dotnet restore $CliProject --verbosity detailed --ignore-failed-sources"
+    Fail "Try: dotnet restore `"$CliProject`" --verbosity detailed --ignore-failed-sources"
     Fail "Restricted network? Set MINIMAX_DOCX_NUGET_SOURCES='https://mirror.example/v3/index.json;C:\path\to\local\feed'"
     Pop-Location
     exit 1
@@ -334,6 +356,6 @@ Write-Host "  pandoc:      $pandocInfo"
 Write-Host "  Project:     $DotnetDir"
 Write-Host ""
 Write-Host "  Usage:"
-Write-Host "    dotnet run --project $CliProject -- create --type report --output my_report.docx"
+Write-Host "    dotnet run --project `"$CliProject`" -- create --type report --output my_report.docx"
 Write-Host ""
 Write-Host "  Log file: $LogFile"

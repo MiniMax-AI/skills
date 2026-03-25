@@ -34,9 +34,23 @@ trim() {
     printf '%s' "$value"
 }
 
+append_default_restore_sources() {
+    RESTORE_SOURCE_ARGS+=("--source" "$DEFAULT_NUGET_SOURCE")
+    RESTORE_SOURCE_LABELS+=("$DEFAULT_NUGET_SOURCE")
+
+    local local_feed
+    for local_feed in "$DOTNET_DIR/packages" "$PROJECT_DIR/assets/nuget"; do
+        if [ -d "$local_feed" ]; then
+            RESTORE_SOURCE_ARGS+=("--source" "$local_feed")
+            RESTORE_SOURCE_LABELS+=("$local_feed")
+        fi
+    done
+}
+
 collect_restore_sources() {
     RESTORE_SOURCE_ARGS=()
     RESTORE_SOURCE_LABELS=()
+    RESTORE_SOURCE_MODE="default"
 
     local raw_sources="${MINIMAX_DOCX_NUGET_SOURCES:-}"
     local source
@@ -53,18 +67,16 @@ collect_restore_sources() {
             RESTORE_SOURCE_ARGS+=("--source" "$source")
             RESTORE_SOURCE_LABELS+=("$source")
         done
-    else
-        RESTORE_SOURCE_ARGS+=("--source" "$DEFAULT_NUGET_SOURCE")
-        RESTORE_SOURCE_LABELS+=("$DEFAULT_NUGET_SOURCE")
 
-        local local_feed
-        for local_feed in "$DOTNET_DIR/packages" "$PROJECT_DIR/assets/nuget"; do
-            if [ -d "$local_feed" ]; then
-                RESTORE_SOURCE_ARGS+=("--source" "$local_feed")
-                RESTORE_SOURCE_LABELS+=("$local_feed")
-            fi
-        done
+        if [ "${#RESTORE_SOURCE_ARGS[@]}" -gt 0 ]; then
+            RESTORE_SOURCE_MODE="custom"
+            return
+        fi
+
+        warn "MINIMAX_DOCX_NUGET_SOURCES is set but contains no valid sources; falling back to default NuGet sources."
     fi
+
+    append_default_restore_sources
 }
 
 # --- Detect OS & Package Manager ---
@@ -326,7 +338,7 @@ build_project() {
         fail "  - Disk space insufficient"
         echo ""
         fail "Configured source(s): ${RESTORE_SOURCE_LABELS[*]}"
-        fail "Try manually: dotnet restore $CLI_PROJECT --verbosity detailed --ignore-failed-sources"
+        fail "Try manually: dotnet restore \"$CLI_PROJECT\" --verbosity detailed --ignore-failed-sources"
         fail "Restricted network? Set MINIMAX_DOCX_NUGET_SOURCES='https://mirror.example/v3/index.json;/path/to/local/feed'"
         return 1
     fi
@@ -335,7 +347,7 @@ build_project() {
     info "Building project..."
     if ! dotnet build "$CLI_PROJECT" --verbosity quiet --no-restore 2>>"$LOG_FILE"; then
         fail "Build failed. Check $LOG_FILE for details."
-        fail "Try manually: dotnet build $CLI_PROJECT --verbosity normal"
+        fail "Try manually: dotnet build \"$CLI_PROJECT\" --verbosity normal"
         return 1
     fi
     log "Project built successfully"
@@ -375,7 +387,7 @@ check_nuget_config() {
 
     collect_restore_sources
 
-    if [ -n "${MINIMAX_DOCX_NUGET_SOURCES:-}" ]; then
+    if [ "$RESTORE_SOURCE_MODE" = "custom" ]; then
         info "Using custom restore source(s) from MINIMAX_DOCX_NUGET_SOURCES"
         local source
         for source in "${RESTORE_SOURCE_LABELS[@]}"; do
@@ -515,8 +527,8 @@ print_summary() {
     echo "  Project:     $DOTNET_DIR"
     echo ""
     echo "  Usage:"
-    echo "    dotnet run --project $CLI_PROJECT -- create --type report --output my_report.docx"
-    echo "    bash $SCRIPT_DIR/env_check.sh     # Quick environment check"
+    echo "    dotnet run --project \"$CLI_PROJECT\" -- create --type report --output my_report.docx"
+    echo "    bash \"$SCRIPT_DIR/env_check.sh\"     # Quick environment check"
     echo ""
     echo "  Log file: $LOG_FILE"
 }

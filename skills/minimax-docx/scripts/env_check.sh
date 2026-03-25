@@ -26,6 +26,19 @@ trim() {
     printf '%s' "$value"
 }
 
+append_default_restore_sources() {
+    RESTORE_SOURCE_ARGS+=("--source" "$DEFAULT_NUGET_SOURCE")
+    RESTORE_SOURCE_LABELS+=("$DEFAULT_NUGET_SOURCE")
+
+    local local_feed
+    for local_feed in "$DOTNET_DIR/packages" "$PROJECT_DIR/assets/nuget"; do
+        if [ -d "$local_feed" ]; then
+            RESTORE_SOURCE_ARGS+=("--source" "$local_feed")
+            RESTORE_SOURCE_LABELS+=("$local_feed")
+        fi
+    done
+}
+
 collect_restore_sources() {
     RESTORE_SOURCE_ARGS=()
     RESTORE_SOURCE_LABELS=()
@@ -45,18 +58,18 @@ collect_restore_sources() {
             RESTORE_SOURCE_ARGS+=("--source" "$source")
             RESTORE_SOURCE_LABELS+=("$source")
         done
-    else
-        RESTORE_SOURCE_ARGS+=("--source" "$DEFAULT_NUGET_SOURCE")
-        RESTORE_SOURCE_LABELS+=("$DEFAULT_NUGET_SOURCE")
 
-        local local_feed
-        for local_feed in "$DOTNET_DIR/packages" "$PROJECT_DIR/assets/nuget"; do
-            if [ -d "$local_feed" ]; then
-                RESTORE_SOURCE_ARGS+=("--source" "$local_feed")
-                RESTORE_SOURCE_LABELS+=("$local_feed")
-            fi
-        done
+        if [ "${#RESTORE_SOURCE_ARGS[@]}" -gt 0 ]; then
+            return
+        fi
     fi
+
+    append_default_restore_sources
+}
+
+quote_for_display() {
+    local value="$1"
+    printf '"%s"' "$value"
 }
 
 # --- Detect platform ---
@@ -114,7 +127,7 @@ if [ -d "$DOTNET_DIR" ]; then
             if dotnet build "$CLI_PROJECT" --verbosity quiet --no-restore &>/dev/null; then
                 printf "[OK]      %-14s build succeeded\n" "project"
             else
-                printf "[FAIL]    %-14s build failed (run: dotnet build %s)\n" "project" "$CLI_PROJECT"
+                printf "[FAIL]    %-14s build failed (run: dotnet build %s)\n" "project" "$(quote_for_display "$CLI_PROJECT")"
                 STATUS="NOT READY"
             fi
         else
