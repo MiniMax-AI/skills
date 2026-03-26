@@ -52,25 +52,25 @@ Static validation requires no external tools. It works directly on the ZIP/XML s
 **Standard (human-readable) output:**
 
 ```bash
-python3 SKILL_DIR/scripts/formula_check.py /path/to/file.xlsx
+uv run python SKILL_DIR/scripts/formula_check.py /path/to/file.xlsx
 ```
 
 **JSON output (for programmatic processing):**
 
 ```bash
-python3 SKILL_DIR/scripts/formula_check.py /path/to/file.xlsx --json
+uv run python SKILL_DIR/scripts/formula_check.py /path/to/file.xlsx --json
 ```
 
 **Single-sheet mode (faster for targeted checks):**
 
 ```bash
-python3 SKILL_DIR/scripts/formula_check.py /path/to/file.xlsx --sheet Summary
+uv run python SKILL_DIR/scripts/formula_check.py /path/to/file.xlsx --sheet Summary
 ```
 
 **Summary mode (counts only, no per-cell detail):**
 
 ```bash
-python3 SKILL_DIR/scripts/formula_check.py /path/to/file.xlsx --summary
+uv run python SKILL_DIR/scripts/formula_check.py /path/to/file.xlsx --summary
 ```
 
 Exit codes:
@@ -208,7 +208,7 @@ Field reference:
 When formula_check.py reports errors, unpack the file to inspect the raw XML:
 
 ```bash
-python3 SKILL_DIR/scripts/xlsx_unpack.py /path/to/file.xlsx /tmp/xlsx_inspect/
+uv run python SKILL_DIR/scripts/xlsx_unpack.py /path/to/file.xlsx /tmp/xlsx_inspect/
 ```
 
 Navigate to the worksheet file for the reported sheet. The sheet-to-file mapping is in `xl/_rels/workbook.xml.rels`. For example, if `rId1` maps to `worksheets/sheet1.xml`, then sheet1.xml is the file for the sheet with `r:id="rId1"` in `xl/workbook.xml`.
@@ -305,13 +305,13 @@ Use the dedicated recalculation script. It handles binary discovery across macOS
 
 ```bash
 # Check LibreOffice availability first
-python3 SKILL_DIR/scripts/libreoffice_recalc.py --check
+uv run python SKILL_DIR/scripts/libreoffice_recalc.py --check
 
 # Run recalculation (default timeout: 60s)
-python3 SKILL_DIR/scripts/libreoffice_recalc.py /path/to/input.xlsx /tmp/recalculated.xlsx
+uv run python SKILL_DIR/scripts/libreoffice_recalc.py /path/to/input.xlsx /tmp/recalculated.xlsx
 
 # For large or complex files, extend the timeout
-python3 SKILL_DIR/scripts/libreoffice_recalc.py /path/to/input.xlsx /tmp/recalculated.xlsx --timeout 120
+uv run python SKILL_DIR/scripts/libreoffice_recalc.py /path/to/input.xlsx /tmp/recalculated.xlsx --timeout 120
 ```
 
 Exit codes from `libreoffice_recalc.py`:
@@ -344,7 +344,7 @@ Record "Tier 2: TIMEOUT — LibreOffice did not complete within Ns" in the repor
 After LibreOffice recalculation, the `<v>` elements contain real computed values. Errors that were invisible before (because `<v>` was empty in a freshly generated file) now appear as `t="e"` cells with actual error strings.
 
 ```bash
-python3 SKILL_DIR/scripts/formula_check.py /tmp/recalculated.xlsx
+uv run python SKILL_DIR/scripts/formula_check.py /tmp/recalculated.xlsx
 ```
 
 This second Tier 1 pass is the definitive runtime error check. Any errors it finds are real calculation failures that must be fixed.
@@ -691,11 +691,11 @@ When `create.md` workflow produces a new xlsx, run validation before any deliver
 
 ```bash
 # Step 1: Static check on the freshly written file
-python3 SKILL_DIR/scripts/formula_check.py /path/to/output.xlsx
+uv run python SKILL_DIR/scripts/formula_check.py /path/to/output.xlsx
 
 # Step 2: Dynamic check (if LibreOffice available)
-python3 SKILL_DIR/scripts/libreoffice_recalc.py /path/to/output.xlsx /tmp/recalculated.xlsx
-python3 SKILL_DIR/scripts/formula_check.py /tmp/recalculated.xlsx
+uv run python SKILL_DIR/scripts/libreoffice_recalc.py /path/to/output.xlsx /tmp/recalculated.xlsx
+uv run python SKILL_DIR/scripts/formula_check.py /tmp/recalculated.xlsx
 ```
 
 Expected behavior on a freshly created file: Tier 1 will find zero `error_value` errors (because `<v>` elements are empty, not error-valued). It will find any broken cross-sheet references if sheet names were misspelled. Tier 2 will populate `<v>` and reveal runtime errors like `#DIV/0!`.
@@ -709,8 +709,8 @@ When `edit.md` workflow modifies an existing xlsx, validate only the affected sh
 ```bash
 # Targeted static check — look at specific sheet
 # (formula_check.py checks all sheets; examine only the relevant section of output)
-python3 SKILL_DIR/scripts/formula_check.py /path/to/edited.xlsx --json \
-  | python3 -c "
+uv run python SKILL_DIR/scripts/formula_check.py /path/to/edited.xlsx --json \
+  | uv run python -c "
 import json, sys
 r = json.load(sys.stdin)
 for e in r['errors']:
@@ -727,19 +727,19 @@ When a user submits a file and reports wrong values or visible errors:
 
 ```bash
 # Step 1: Static scan — find all error cells
-python3 SKILL_DIR/scripts/formula_check.py /path/to/user_file.xlsx --json > /tmp/validation_results.json
+uv run python SKILL_DIR/scripts/formula_check.py /path/to/user_file.xlsx --json > /tmp/validation_results.json
 
 # Step 2: Unpack for manual inspection
-python3 SKILL_DIR/scripts/xlsx_unpack.py /path/to/user_file.xlsx /tmp/xlsx_inspect/
+uv run python SKILL_DIR/scripts/xlsx_unpack.py /path/to/user_file.xlsx /tmp/xlsx_inspect/
 
 # Step 3: Dynamic recalculation
-python3 SKILL_DIR/scripts/libreoffice_recalc.py /path/to/user_file.xlsx /tmp/user_file_recalc.xlsx
+uv run python SKILL_DIR/scripts/libreoffice_recalc.py /path/to/user_file.xlsx /tmp/user_file_recalc.xlsx
 
 # Step 4: Re-validate recalculated file
-python3 SKILL_DIR/scripts/formula_check.py /tmp/user_file_recalc.xlsx --json > /tmp/validation_after_recalc.json
+uv run python SKILL_DIR/scripts/formula_check.py /tmp/user_file_recalc.xlsx --json > /tmp/validation_after_recalc.json
 
 # Step 5: Compare before and after
-python3 - <<'EOF'
+uv run python - <<'EOF'
 import json
 before = json.load(open("/tmp/validation_results.json"))
 after  = json.load(open("/tmp/validation_after_recalc.json"))

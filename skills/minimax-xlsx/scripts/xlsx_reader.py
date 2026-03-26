@@ -11,10 +11,10 @@
 xlsx_reader.py — Structure discovery and data analysis tool for Excel/CSV files.
 
 Usage:
-    python3 xlsx_reader.py <file>                   # full structure report
-    python3 xlsx_reader.py <file> --sheet Sales     # analyze one sheet
-    python3 xlsx_reader.py <file> --json            # machine-readable output
-    python3 xlsx_reader.py <file> --quality         # data quality audit only
+    uv run xlsx_reader.py <file>                   # full structure report
+    uv run xlsx_reader.py <file> --sheet Sales     # analyze one sheet
+    uv run xlsx_reader.py <file> --json            # machine-readable output
+    uv run xlsx_reader.py <file> --quality         # data quality audit only
 
 Supports: .xlsx, .xlsm, .csv, .tsv
 Does NOT modify the source file in any way.
