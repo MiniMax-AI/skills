@@ -14,6 +14,23 @@ metadata:
 
 Handle the request directly. Do NOT spawn sub-agents. Always write the output file the user requests.
 
+## Dependency Management
+
+The `xlsx_reader.py` script requires `pandas` and `openpyxl`. Other scripts use only Python standard libraries.
+
+**Recommended approach**: Use `uv run` (modern Python package manager) which automatically handles dependencies:
+
+```bash
+# Recommended: uv run automatically installs dependencies
+uv run scripts/xlsx_reader.py input.xlsx
+
+# Traditional: Manual dependency installation required
+pip install pandas openpyxl
+python3 scripts/xlsx_reader.py input.xlsx
+```
+
+**Note**: `uv run` works with PEP 723 script metadata in `xlsx_reader.py` to automatically install required dependencies in an isolated environment.
+
 ## Task Routing
 
 | Task | Method | Guide |
@@ -48,37 +65,37 @@ Never use openpyxl round-trip on existing files (corrupts VBA, pivots, sparkline
 
 **"Fill cells" / "Add formulas to existing cells" = EDIT task.** If the input file already exists and you are told to fill, update, or add formulas to specific cells, you MUST use the XML edit path. Never create a new `Workbook()`. Example — fill B3 with a cross-sheet SUM formula:
 ```bash
-python3 SKILL_DIR/scripts/xlsx_unpack.py input.xlsx /tmp/xlsx_work/
+uv run scripts/xlsx_unpack.py input.xlsx /tmp/xlsx_work/
 # Find the target sheet's XML via xl/workbook.xml → xl/_rels/workbook.xml.rels
 # Then use the Edit tool to add <f> inside the target <c> element:
 #   <c r="B3"><f>SUM('Sales Data'!D2:D13)</f><v></v></c>
-python3 SKILL_DIR/scripts/xlsx_pack.py /tmp/xlsx_work/ output.xlsx
+uv run scripts/xlsx_pack.py /tmp/xlsx_work/ output.xlsx
 ```
 
 **Add a column** (formulas, numfmt, styles auto-copied from adjacent column):
 ```bash
-python3 SKILL_DIR/scripts/xlsx_unpack.py input.xlsx /tmp/xlsx_work/
-python3 SKILL_DIR/scripts/xlsx_add_column.py /tmp/xlsx_work/ --col G \
+uv run scripts/xlsx_unpack.py input.xlsx /tmp/xlsx_work/
+uv run scripts/xlsx_add_column.py /tmp/xlsx_work/ --col G \
     --sheet "Sheet1" --header "% of Total" \
     --formula '=F{row}/$F$10' --formula-rows 2:9 \
     --total-row 10 --total-formula '=SUM(G2:G9)' --numfmt '0.0%' \
     --border-row 10 --border-style medium
-python3 SKILL_DIR/scripts/xlsx_pack.py /tmp/xlsx_work/ output.xlsx
+uv run scripts/xlsx_pack.py /tmp/xlsx_work/ output.xlsx
 ```
 The `--border-row` flag applies a top border to ALL cells in that row (not just the new column). Use it when the task requires accounting-style borders on total rows.
 
 **Insert a row** (shifts existing rows, updates SUM formulas, fixes circular refs):
 ```bash
-python3 SKILL_DIR/scripts/xlsx_unpack.py input.xlsx /tmp/xlsx_work/
+uv run scripts/xlsx_unpack.py input.xlsx /tmp/xlsx_work/
 # IMPORTANT: Find the correct --at row by searching for the label text
 # in the worksheet XML, NOT by using the row number from the prompt.
 # The prompt may say "row 5 (Office Rent)" but Office Rent might actually
 # be at row 4. Always locate the row by its text label first.
-python3 SKILL_DIR/scripts/xlsx_insert_row.py /tmp/xlsx_work/ --at 5 \
+uv run scripts/xlsx_insert_row.py /tmp/xlsx_work/ --at 5 \
     --sheet "Budget FY2025" --text A=Utilities \
     --values B=3000 C=3000 D=3500 E=3500 \
     --formula 'F=SUM(B{row}:E{row})' --copy-style-from 4
-python3 SKILL_DIR/scripts/xlsx_pack.py /tmp/xlsx_work/ output.xlsx
+uv run scripts/xlsx_pack.py /tmp/xlsx_work/ output.xlsx
 ```
 **Row lookup rule**: When the task says "after row N (Label)", always find the row by searching for "Label" in the worksheet XML (`grep -n "Label" /tmp/xlsx_work/xl/worksheets/sheet*.xml` or check sharedStrings.xml). Use the actual row number + 1 for `--at`. Do NOT call `xlsx_shift_rows.py` separately — `xlsx_insert_row.py` calls it internally.
 
@@ -95,9 +112,9 @@ After running helper scripts, apply borders to ALL cells in the target row, not 
 
 **Manual XML edit** (for anything the helper scripts don't cover):
 ```bash
-python3 SKILL_DIR/scripts/xlsx_unpack.py input.xlsx /tmp/xlsx_work/
+uv run scripts/xlsx_unpack.py input.xlsx /tmp/xlsx_work/
 # ... edit XML with the Edit tool ...
-python3 SKILL_DIR/scripts/xlsx_pack.py /tmp/xlsx_work/ output.xlsx
+uv run scripts/xlsx_pack.py /tmp/xlsx_work/ output.xlsx
 ```
 
 ## FIX — Repair broken formulas (read `references/fix.md` first)
@@ -127,12 +144,15 @@ Run `formula_check.py` for static validation. Use `libreoffice_recalc.py` for dy
 ## Utility Scripts
 
 ```bash
-python3 SKILL_DIR/scripts/xlsx_reader.py input.xlsx                 # structure discovery
-python3 SKILL_DIR/scripts/formula_check.py file.xlsx --json         # formula validation
-python3 SKILL_DIR/scripts/formula_check.py file.xlsx --report      # standardized report
-python3 SKILL_DIR/scripts/xlsx_unpack.py in.xlsx /tmp/work/         # unpack for XML editing
-python3 SKILL_DIR/scripts/xlsx_pack.py /tmp/work/ out.xlsx          # repack after editing
-python3 SKILL_DIR/scripts/xlsx_shift_rows.py /tmp/work/ insert 5 1  # shift rows for insertion
-python3 SKILL_DIR/scripts/xlsx_add_column.py /tmp/work/ --col G ... # add column with formulas
-python3 SKILL_DIR/scripts/xlsx_insert_row.py /tmp/work/ --at 6 ...  # insert row with data
+# Recommended: Use uv run for scripts with dependencies
+uv run scripts/xlsx_reader.py input.xlsx                 # structure discovery
+
+# Scripts without dependencies work with both uv run and python3
+uv run scripts/formula_check.py file.xlsx --json         # formula validation
+uv run scripts/formula_check.py file.xlsx --report       # standardized report
+uv run scripts/xlsx_unpack.py in.xlsx /tmp/work/         # unpack for XML editing
+uv run scripts/xlsx_pack.py /tmp/work/ out.xlsx          # repack after editing
+uv run scripts/xlsx_shift_rows.py /tmp/work/ insert 5 1  # shift rows for insertion
+uv run scripts/xlsx_add_column.py /tmp/work/ --col G ... # add column with formulas
+uv run scripts/xlsx_insert_row.py /tmp/work/ --at 6 ...  # insert row with data
 ```
