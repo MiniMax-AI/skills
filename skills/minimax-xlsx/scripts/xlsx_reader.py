@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "pandas",
+#     "openpyxl",
+# ]
+# ///
 # SPDX-License-Identifier: MIT
 """
 xlsx_reader.py — Structure discovery and data analysis tool for Excel/CSV files.
