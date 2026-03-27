@@ -14,6 +14,24 @@ metadata:
 
 Handle the request directly. Do NOT spawn sub-agents. Always write the output file the user requests.
 
+## Setup
+
+Install [uv](https://docs.astral.sh/uv/) to run all scripts. 
+
+uv automatically manages virtual environments and dependencies—no manual Python package installation required.
+
+**Install uv:**
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+After installation, all `uv run` commands will work immediately.
+
 ## Task Routing
 
 | Task | Method | Guide |
