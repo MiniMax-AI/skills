@@ -13,7 +13,9 @@ $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectDir = Split-Path -Parent $ScriptDir
 $DotnetDir = Join-Path $ScriptDir "dotnet"
+$CliProject = Join-Path (Join-Path $DotnetDir "MiniMaxAIDocx.Cli") "MiniMaxAIDocx.Cli.csproj"
 $LogFile = Join-Path $ProjectDir ".setup.log"
+$DefaultNugetSource = "https://api.nuget.org/v3/index.json"
 
 # --- Output Helpers ---
 function Log   { Write-Host "[OK]    $args" -ForegroundColor Green }
@@ -21,6 +23,66 @@ function Warn  { Write-Host "[WARN]  $args" -ForegroundColor Yellow }
 function Fail  { Write-Host "[FAIL]  $args" -ForegroundColor Red }
 function Info  { Write-Host "[INFO]  $args" -ForegroundColor Cyan }
 function Step  { Write-Host "`n=== $args ===" -ForegroundColor Blue }
+
+function Add-DefaultRestoreSources {
+    param(
+        [string[]]$Sources = @()
+    )
+
+    $result = @($Sources)
+    $result += $DefaultNugetSource
+
+    $localFeeds = @(
+        (Join-Path $DotnetDir "packages"),
+        (Join-Path $ProjectDir "assets/nuget")
+    )
+    foreach ($feed in $localFeeds) {
+        if (Test-Path $feed) {
+            $result += $feed
+        }
+    }
+
+    return $result
+}
+
+function Get-RestoreSources {
+    $sources = @()
+
+    if ($env:MINIMAX_DOCX_NUGET_SOURCES) {
+        foreach ($source in ($env:MINIMAX_DOCX_NUGET_SOURCES -split ';')) {
+            $trimmed = $source.Trim()
+            if ($trimmed) {
+                $sources += $trimmed
+            }
+        }
+
+        if ($sources.Count -gt 0) {
+            return [pscustomobject]@{
+                Mode = "custom"
+                Sources = $sources
+            }
+        }
+
+        Warn "MINIMAX_DOCX_NUGET_SOURCES contained no valid entries; falling back to default NuGet sources."
+    }
+
+    return [pscustomobject]@{
+        Mode = "default"
+        Sources = (Add-DefaultRestoreSources)
+    }
+}
+
+function Get-RestoreArgs {
+    param(
+        [string[]]$Sources
+    )
+
+    $args = @($CliProject, "--verbosity", "quiet", "--ignore-failed-sources")
+    foreach ($source in $Sources) {
+        $args += @("--source", $source)
+    }
+    return $args
+}
 
 if ($Help) {
     Write-Host @"
@@ -152,11 +214,28 @@ if (-not $Minimal) {
 Step "Checking NuGet configuration"
 
 $nugetSources = & dotnet nuget list source 2>$null
-if ($nugetSources -match "nuget.org") {
-    Log "nuget.org source is configured"
+$restoreSourceConfig = Get-RestoreSources
+$restoreSources = $restoreSourceConfig.Sources
+if ($restoreSourceConfig.Mode -eq "custom") {
+    Info "Using custom restore source(s) from MINIMAX_DOCX_NUGET_SOURCES"
+    foreach ($source in $restoreSources) {
+        Log "restore source: $source"
+    }
 } else {
-    Warn "nuget.org not in sources. Adding..."
-    & dotnet nuget add source "https://api.nuget.org/v3/index.json" --name "nuget.org" 2>>$LogFile
+    if ($nugetSources -match "nuget.org") {
+        Log "nuget.org source is configured"
+    } else {
+        Warn "nuget.org not in sources. Adding..."
+        & dotnet nuget add source $DefaultNugetSource --name "nuget.org" 2>>$LogFile
+    }
+
+    foreach ($feed in @((Join-Path $DotnetDir "packages"), (Join-Path $ProjectDir "assets/nuget"))) {
+        if (Test-Path $feed) {
+            Log "Detected local NuGet feed: $feed"
+        }
+    }
+
+    Info "Set MINIMAX_DOCX_NUGET_SOURCES to override restore source(s) in restricted networks"
 }
 
 # --- Encoding Check ---
@@ -200,26 +279,34 @@ if (-not (Test-Path $DotnetDir)) {
     Fail "Dotnet project directory not found: $DotnetDir"
     exit 1
 }
+if (-not (Test-Path $CliProject)) {
+    Fail "CLI project not found: $CliProject"
+    exit 1
+}
 
 Push-Location $DotnetDir
 
 Info "Restoring NuGet packages..."
-$restoreResult = & dotnet restore --verbosity quiet 2>&1
+$restoreArgs = Get-RestoreArgs -Sources $restoreSources
+$restoreResult = & dotnet restore @restoreArgs 2>&1
 if ($LASTEXITCODE -ne 0) {
     Fail "NuGet restore failed:"
     $restoreResult | ForEach-Object { Fail "  $_" }
     Fail "Common causes:"
-    Fail "  - No internet (NuGet needs to download packages)"
+    Fail "  - No internet access to the configured NuGet source(s)"
     Fail "  - Corporate proxy/firewall blocking nuget.org"
+    Fail "  - Custom/local feed missing required packages"
     Fail "  - Insufficient disk space"
-    Fail "Try: dotnet restore --verbosity detailed"
+    Fail "Configured source(s): $($restoreSources -join ', ')"
+    Fail "Try: dotnet restore `"$CliProject`" --verbosity detailed --ignore-failed-sources"
+    Fail "Restricted network? Set MINIMAX_DOCX_NUGET_SOURCES='https://mirror.example/v3/index.json;C:\path\to\local\feed'"
     Pop-Location
     exit 1
 }
 Log "NuGet packages restored"
 
 Info "Building project..."
-$buildResult = & dotnet build --verbosity quiet --no-restore 2>&1
+$buildResult = & dotnet build $CliProject --verbosity quiet --no-restore 2>&1
 if ($LASTEXITCODE -ne 0) {
     Fail "Build failed:"
     $buildResult | ForEach-Object { Fail "  $_" }
@@ -238,7 +325,7 @@ if (-not $SkipVerify) {
 
     Info "Creating a test document..."
     Push-Location $DotnetDir
-    $testResult = & dotnet run --project MiniMaxAIDocx.Cli -- create --type report --output $testOutput --title "Setup Test" 2>&1
+    $testResult = & dotnet run --project $CliProject -- create --type report --output $testOutput --title "Setup Test" 2>&1
     $testExitCode = $LASTEXITCODE
     Pop-Location
 
@@ -269,6 +356,6 @@ Write-Host "  pandoc:      $pandocInfo"
 Write-Host "  Project:     $DotnetDir"
 Write-Host ""
 Write-Host "  Usage:"
-Write-Host "    dotnet run --project $DotnetDir\MiniMaxAIDocx.Cli -- create --type report --output my_report.docx"
+Write-Host "    dotnet run --project `"$CliProject`" -- create --type report --output my_report.docx"
 Write-Host ""
 Write-Host "  Log file: $LogFile"
