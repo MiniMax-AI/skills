@@ -25,6 +25,33 @@ fail()  { echo -e "${RED}[FAIL]${NC}  $*"; }
 info()  { echo -e "${BLUE}[INFO]${NC}  $*"; }
 step()  { echo -e "\n${BLUE}=== $* ===${NC}"; }
 
+SUDO_CMD=""
+
+init_privilege_cmd() {
+    # If already root, run package commands directly.
+    if [ "$(id -u)" -eq 0 ]; then
+        SUDO_CMD=""
+        return 0
+    fi
+
+    if command -v sudo &>/dev/null; then
+        SUDO_CMD="sudo"
+        return 0
+    fi
+
+    fail "This script needs elevated privileges for package installation, but sudo is not available."
+    fail "Run as root or install sudo, then re-run the script."
+    return 1
+}
+
+run_as_root() {
+    if [ -n "$SUDO_CMD" ]; then
+        "$SUDO_CMD" "$@"
+    else
+        "$@"
+    fi
+}
+
 # --- Detect OS & Package Manager ---
 detect_platform() {
     OS="unknown"
@@ -104,8 +131,8 @@ install_dotnet() {
             # Microsoft package repo for Ubuntu/Debian
             if ! dpkg -l dotnet-sdk-8.0 &>/dev/null 2>&1; then
                 info "Adding Microsoft package repository..."
-                sudo apt-get update -qq
-                sudo apt-get install -y -qq wget apt-transport-https
+                run_as_root apt-get update -qq
+                run_as_root apt-get install -y -qq wget apt-transport-https
                 wget -q "https://dot.net/v1/dotnet-install.sh" -O /tmp/dotnet-install.sh
                 chmod +x /tmp/dotnet-install.sh
                 /tmp/dotnet-install.sh --channel 8.0 --install-dir "$HOME/.dotnet"
@@ -114,13 +141,13 @@ install_dotnet() {
             fi
             ;;
         dnf)
-            sudo dnf install -y dotnet-sdk-8.0
+            run_as_root dnf install -y dotnet-sdk-8.0
             ;;
         pacman)
-            sudo pacman -S --noconfirm dotnet-sdk
+            run_as_root pacman -S --noconfirm dotnet-sdk
             ;;
         zypper)
-            sudo zypper install -y dotnet-sdk-8.0
+            run_as_root zypper install -y dotnet-sdk-8.0
             ;;
         apk)
             apk add --no-cache dotnet8-sdk
@@ -167,10 +194,10 @@ install_pandoc() {
     info "Installing pandoc..."
     case "$PKG_MGR" in
         brew)   brew install pandoc ;;
-        apt)    sudo apt-get install -y -qq pandoc ;;
-        dnf)    sudo dnf install -y pandoc ;;
-        pacman) sudo pacman -S --noconfirm pandoc ;;
-        zypper) sudo zypper install -y pandoc ;;
+        apt)    run_as_root apt-get install -y -qq pandoc ;;
+        dnf)    run_as_root dnf install -y pandoc ;;
+        pacman) run_as_root pacman -S --noconfirm pandoc ;;
+        zypper) run_as_root zypper install -y pandoc ;;
         apk)    apk add --no-cache pandoc ;;
         *)
             warn "Cannot auto-install pandoc. Install manually: https://pandoc.org/installing.html"
@@ -215,10 +242,10 @@ install_soffice() {
     info "Installing LibreOffice (this may take a while)..."
     case "$PKG_MGR" in
         brew)   brew install --cask libreoffice ;;
-        apt)    sudo apt-get install -y -qq libreoffice-core ;;
-        dnf)    sudo dnf install -y libreoffice-core ;;
-        pacman) sudo pacman -S --noconfirm libreoffice-still ;;
-        zypper) sudo zypper install -y libreoffice ;;
+        apt)    run_as_root apt-get install -y -qq libreoffice-core ;;
+        dnf)    run_as_root dnf install -y libreoffice-core ;;
+        pacman) run_as_root pacman -S --noconfirm libreoffice-still ;;
+        zypper) run_as_root zypper install -y libreoffice ;;
         apk)    apk add --no-cache libreoffice ;;
         *)
             warn "Cannot auto-install LibreOffice. Install manually: https://www.libreoffice.org/download/"
@@ -248,10 +275,10 @@ install_zip_tools() {
     info "Installing zip/unzip..."
     case "$PKG_MGR" in
         brew)   brew install zip unzip 2>/dev/null || true ;;
-        apt)    sudo apt-get install -y -qq zip unzip ;;
-        dnf)    sudo dnf install -y zip unzip ;;
-        pacman) sudo pacman -S --noconfirm zip unzip ;;
-        zypper) sudo zypper install -y zip unzip ;;
+        apt)    run_as_root apt-get install -y -qq zip unzip ;;
+        dnf)    run_as_root dnf install -y zip unzip ;;
+        pacman) run_as_root pacman -S --noconfirm zip unzip ;;
+        zypper) run_as_root zypper install -y zip unzip ;;
         apk)    apk add --no-cache zip unzip ;;
         *)      warn "Install zip/unzip manually (optional, .NET handles DOCX natively)" ;;
     esac
@@ -462,6 +489,10 @@ main() {
     : > "$LOG_FILE"  # Clear log
 
     detect_platform
+
+    if [ "$OS" = "linux" ] || [ "$OS" = "wsl" ]; then
+        init_privilege_cmd || return 1
+    fi
 
     # Parse arguments
     local SKIP_OPTIONAL=false

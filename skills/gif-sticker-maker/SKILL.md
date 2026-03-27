@@ -21,6 +21,12 @@ metadata:
 
 Convert user photos into 4 animated GIF stickers (Funko Pop / Pop Mart style).
 
+Set an absolute skill path once per session:
+
+```bash
+export SKILL_DIR="/absolute/path/to/minimax-skills/skills/gif-sticker-maker"
+```
+
 ## Style Spec
 
 - Funko Pop / Pop Mart blind box 3D figurine
@@ -50,7 +56,7 @@ Ask user (in their language):
 
 ### Step 1: Generate 4 Static Sticker Images
 
-**Tool**: `scripts/minimax_image.py`
+**Tool**: `SKILL_DIR/scripts/minimax_image.py`
 
 1. Analyze the user's photo — identify subject type (person / animal / object / logo).
 2. For each of the 4 stickers, build a prompt from [image-prompt-template.txt](assets/image-prompt-template.txt) by filling `{action}` and `{caption}`.
@@ -58,10 +64,10 @@ Ask user (in their language):
 4. Generate (all 4 are independent — **run concurrently**):
 
 ```bash
-python3 scripts/minimax_image.py "<prompt>" -o output/sticker_hi.png --ratio 1:1 --subject-ref <photo>
-python3 scripts/minimax_image.py "<prompt>" -o output/sticker_laugh.png --ratio 1:1 --subject-ref <photo>
-python3 scripts/minimax_image.py "<prompt>" -o output/sticker_cry.png --ratio 1:1 --subject-ref <photo>
-python3 scripts/minimax_image.py "<prompt>" -o output/sticker_love.png --ratio 1:1 --subject-ref <photo>
+python3 "$SKILL_DIR"/scripts/minimax_image.py "<prompt>" -o output/sticker_hi.png --ratio 1:1 --subject-ref <photo>
+python3 "$SKILL_DIR"/scripts/minimax_image.py "<prompt>" -o output/sticker_laugh.png --ratio 1:1 --subject-ref <photo>
+python3 "$SKILL_DIR"/scripts/minimax_image.py "<prompt>" -o output/sticker_cry.png --ratio 1:1 --subject-ref <photo>
+python3 "$SKILL_DIR"/scripts/minimax_image.py "<prompt>" -o output/sticker_love.png --ratio 1:1 --subject-ref <photo>
 ```
 
 > `--subject-ref` only works for person subjects (API limitation: type=character).
@@ -69,25 +75,25 @@ python3 scripts/minimax_image.py "<prompt>" -o output/sticker_love.png --ratio 1
 
 ### Step 2: Animate Each Image → Video
 
-**Tool**: `scripts/minimax_video.py` with `--image` flag (image-to-video mode)
+**Tool**: `SKILL_DIR/scripts/minimax_video.py` with `--image` flag (image-to-video mode)
 
 For each sticker image, build a prompt from [video-prompt-template.txt](assets/video-prompt-template.txt), then:
 
 ```bash
-python3 scripts/minimax_video.py "<prompt>" --image output/sticker_hi.png -o output/sticker_hi.mp4
-python3 scripts/minimax_video.py "<prompt>" --image output/sticker_laugh.png -o output/sticker_laugh.mp4
-python3 scripts/minimax_video.py "<prompt>" --image output/sticker_cry.png -o output/sticker_cry.mp4
-python3 scripts/minimax_video.py "<prompt>" --image output/sticker_love.png -o output/sticker_love.mp4
+python3 "$SKILL_DIR"/scripts/minimax_video.py "<prompt>" --image output/sticker_hi.png -o output/sticker_hi.mp4
+python3 "$SKILL_DIR"/scripts/minimax_video.py "<prompt>" --image output/sticker_laugh.png -o output/sticker_laugh.mp4
+python3 "$SKILL_DIR"/scripts/minimax_video.py "<prompt>" --image output/sticker_cry.png -o output/sticker_cry.mp4
+python3 "$SKILL_DIR"/scripts/minimax_video.py "<prompt>" --image output/sticker_love.png -o output/sticker_love.mp4
 ```
 
 All 4 calls are independent — **run concurrently**.
 
 ### Step 3: Convert Videos → GIF
 
-**Tool**: `scripts/convert_mp4_to_gif.py`
+**Tool**: `SKILL_DIR/scripts/convert_mp4_to_gif.py`
 
 ```bash
-python3 scripts/convert_mp4_to_gif.py output/sticker_hi.mp4 output/sticker_laugh.mp4 output/sticker_cry.mp4 output/sticker_love.mp4
+python3 "$SKILL_DIR"/scripts/convert_mp4_to_gif.py output/sticker_hi.mp4 output/sticker_laugh.mp4 output/sticker_cry.mp4 output/sticker_love.mp4
 ```
 
 Outputs GIF files alongside each MP4 (e.g. `sticker_hi.gif`).

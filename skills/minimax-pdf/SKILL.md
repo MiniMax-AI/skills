@@ -22,6 +22,12 @@ metadata:
 
 Three tasks. One skill.
 
+Set an absolute skill path once per session:
+
+```bash
+export SKILL_DIR="/absolute/path/to/minimax-skills/skills/minimax-pdf"
+```
+
 ## Read `design/design.md` before any CREATE or REFORMAT work.
 
 ---
@@ -43,7 +49,7 @@ Three tasks. One skill.
 Full pipeline — content → design tokens → cover → body → merged PDF.
 
 ```bash
-bash scripts/make.sh run \
+bash "$SKILL_DIR"/scripts/make.sh run \
   --title "Q3 Strategy Review" --type proposal \
   --author "Strategy Team" --date "October 2025" \
   --accent "#2D5F8A" \
@@ -144,10 +150,10 @@ Fill form fields in an existing PDF without altering layout or design.
 
 ```bash
 # Step 1: inspect
-python3 scripts/fill_inspect.py --input form.pdf
+python3 "$SKILL_DIR"/scripts/fill_inspect.py --input form.pdf
 
 # Step 2: fill
-python3 scripts/fill_write.py --input form.pdf --out filled.pdf \
+python3 "$SKILL_DIR"/scripts/fill_write.py --input form.pdf --out filled.pdf \
   --values '{"FirstName": "Jane", "Agree": "true", "Country": "US"}'
 ```
 
@@ -167,7 +173,7 @@ Always run `fill_inspect.py` first to get exact field names.
 Parse an existing document → content.json → CREATE pipeline.
 
 ```bash
-bash scripts/make.sh reformat \
+bash "$SKILL_DIR"/scripts/make.sh reformat \
   --input source.md --title "My Report" --type report --out output.pdf
 ```
 
@@ -178,9 +184,9 @@ bash scripts/make.sh reformat \
 ## Environment
 
 ```bash
-bash scripts/make.sh check   # verify all deps
-bash scripts/make.sh fix     # auto-install missing deps
-bash scripts/make.sh demo    # build a sample PDF
+bash "$SKILL_DIR"/scripts/make.sh check   # verify all deps
+bash "$SKILL_DIR"/scripts/make.sh fix     # auto-install missing deps
+bash "$SKILL_DIR"/scripts/make.sh demo    # build a sample PDF
 ```
 
 | Tool | Used by | Install |
