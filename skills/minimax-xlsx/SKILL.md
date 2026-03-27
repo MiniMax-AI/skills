@@ -14,13 +14,13 @@ metadata:
 
 Handle the request directly. Do NOT spawn sub-agents. Always write the output file the user requests.
 
-## Setup
+## Setup & Installation
 
-Install [uv](https://docs.astral.sh/uv/) to run all scripts. 
+To use the MiniMax XLSX Skill, you need the [uv](https://docs.astral.sh/uv/) package manager. Follow these steps to ensure your environment is ready.
 
-uv automatically manages virtual environments and dependencies—no manual Python package installation required.
+### 1. Install uv (If not installed)
 
-**Install uv:**
+uv manages all Python dependencies automatically—no manual `pip install` required. Run the appropriate command for your system:
 
 ```bash
 # macOS / Linux
@@ -30,7 +30,17 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-After installation, all `uv run` commands will work immediately.
+### 2. Verify Installation
+
+After installing uv, verify it's available:
+
+```bash
+uv --version
+```
+
+### 3. Ready to Use
+
+All `uv run` commands in this skill will now work immediately. uv automatically creates virtual environments and installs dependencies on first use—no further setup needed.
 
 ## Task Routing
 
