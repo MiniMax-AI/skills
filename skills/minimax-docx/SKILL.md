@@ -38,17 +38,23 @@ Create, edit, and format DOCX documents via CLI tools or direct C# scripts built
 
 ## Setup
 
-**First time:** `bash scripts/setup.sh` (or `powershell scripts/setup.ps1` on Windows, `--minimal` to skip optional deps).
+Set an absolute skill path once per session:
 
-**First operation in session:** `scripts/env_check.sh` — do not proceed if `NOT READY`. (Skip on subsequent operations within the same session.)
+```bash
+export SKILL_DIR="/absolute/path/to/minimax-skills/skills/minimax-docx"
+```
+
+**First time:** `bash "$SKILL_DIR"/scripts/setup.sh` (or `powershell "$env:SKILL_DIR"/scripts/setup.ps1` on Windows, `--minimal` to skip optional deps).
+
+**First operation in session:** `bash "$SKILL_DIR"/scripts/env_check.sh` — do not proceed if `NOT READY`. (Skip on subsequent operations within the same session.)
 
 ## Quick Start: Direct C# Path
 
 When the task requires structural document manipulation (custom styles, complex tables, multi-section layouts, headers/footers, TOC, images), write C# directly instead of wrestling with CLI limitations. Use this scaffold:
 
 ```csharp
-// File: scripts/dotnet/task.csx  (or a new .cs in a Console project)
-// dotnet run --project scripts/dotnet/MiniMaxAIDocx.Cli -- run-script task.csx
+// File: SKILL_DIR/scripts/dotnet/task.csx  (or a new .cs in a Console project)
+// dotnet run --project SKILL_DIR/scripts/dotnet/MiniMaxAIDocx.Cli -- run-script task.csx
 #r "nuget: DocumentFormat.OpenXml, 3.2.0"
 
 using DocumentFormat.OpenXml;
@@ -69,8 +75,9 @@ mainPart.Document = new Document(new Body());
 ## CLI shorthand
 
 All CLI commands below use `$CLI` as shorthand for:
+
 ```bash
-dotnet run --project scripts/dotnet/MiniMaxAIDocx.Cli --
+dotnet run --project "$SKILL_DIR"/scripts/dotnet/MiniMaxAIDocx.Cli --
 ```
 
 ## Pipeline routing
@@ -100,9 +107,9 @@ If the request spans multiple pipelines, run them sequentially (e.g., Create the
 
 ## Pre-processing
 
-Convert `.doc` → `.docx` if needed: `scripts/doc_to_docx.sh input.doc output_dir/`
+Convert `.doc` → `.docx` if needed: `SKILL_DIR/scripts/doc_to_docx.sh input.doc output_dir/`
 
-Preview before editing (avoids reading raw XML): `scripts/docx_preview.sh document.docx`
+Preview before editing (avoids reading raw XML): `SKILL_DIR/scripts/docx_preview.sh document.docx`
 
 Analyze structure for editing scenarios: `$CLI analyze --input document.docx`
 
@@ -171,19 +178,21 @@ $CLI validate --input doc.docx --business                           # 3. busines
 ```
 
 If XSD fails, auto-repair and retry:
+
 ```bash
 $CLI fix-order --input doc.docx
 $CLI validate --input doc.docx --xsd assets/xsd/wml-subset.xsd
 ```
 
 If XSD still fails, fall back to business rules + preview:
+
 ```bash
 $CLI validate --input doc.docx --business
-scripts/docx_preview.sh doc.docx
+bash "$SKILL_DIR"/scripts/docx_preview.sh doc.docx
 # Verify: font contamination=0, table count correct, drawing count correct, sectPr count correct
 ```
 
-Final preview: `scripts/docx_preview.sh doc.docx`
+Final preview: `SKILL_DIR/scripts/docx_preview.sh doc.docx`
 
 ## Critical rules
 
