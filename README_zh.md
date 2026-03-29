@@ -21,6 +21,8 @@
 | `minimax-xlsx` | 打开、创建、读取、分析、编辑或验证 Excel/电子表格文件（.xlsx、.xlsm、.csv、.tsv）。支持通过 XML 模板从零创建 xlsx、使用 pandas 读取分析、零格式损失编辑现有文件、公式重算与验证、专业财务格式化。 | Official |
 | `minimax-docx` | 基于 OpenXML SDK（.NET）的专业 DOCX 文档创建、编辑与排版。三条流水线：从零创建新文档、填写/编辑现有文档内容、应用模板格式并通过 XSD 验证门控检查。 | Official |
 | `vision-analysis` | 使用视觉 AI 模型分析、描述和提取图像信息。支持描述、OCR 文字识别、UI 界面审查、图表数据提取和物体检测。基于 MiniMax VL API，OpenAI GPT-4V 作为备选。 | Community |
+| `markdown-mcp` | 高效读取和编辑 Markdown 文件的 MCP 工具。无需编写 Python 脚本——通过 MCP 工具直接获取文件信息、搜索、读取章节、替换文本、插入行。替代缓慢的 Python 脚本编辑模式。需安装 `minimax-markdown-mcp` 包。 | Community |
+| `markdown-editing` | 高效编辑 Markdown 文件，使用精准、最小化的操作。指导 Agent 少量读取、精准编辑、稀疏验证——避免全文重写和重复读取。适用于大型文档项目。 | Community |
 
 ## 安装
 

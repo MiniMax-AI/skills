@@ -21,6 +21,8 @@ Development skills for AI coding agents. Plug into your favorite AI coding tool 
 | `minimax-xlsx` | Open, create, read, analyze, edit, or validate Excel/spreadsheet files (.xlsx, .xlsm, .csv, .tsv). Covers creating new xlsx from scratch via XML templates, reading and analyzing with pandas, editing existing files with zero format loss, formula recalculation, validation, and professional financial formatting. | Official |
 | `minimax-docx` | Professional DOCX document creation, editing, and formatting using OpenXML SDK (.NET). Three pipelines: create new documents from scratch, fill/edit content in existing documents, or apply template formatting with XSD validation gate-check. | Official |
 | `vision-analysis` | Analyze, describe, and extract information from images using vision AI models. Supports describe, OCR, UI mockup review, chart data extraction, and object detection. Powered by MiniMax VL API with OpenAI GPT-4V fallback. | Community |
+| `markdown-mcp` | MCP tool for efficient markdown file reading and editing. Use instead of writing Python scripts — get file info, grep, read sections, replace text, insert lines directly via MCP tools. Replaces slow Python-script editing pattern. Requires `minimax-markdown-mcp` package installed. | Community |
+| `markdown-editing` | Edit markdown files efficiently using targeted, minimal operations. Teaches the agent to read less, edit precise, and verify sparse — avoiding full-file rewrites and re-reads. Useful for large documentation projects. | Community |
 
 ## Installation
 

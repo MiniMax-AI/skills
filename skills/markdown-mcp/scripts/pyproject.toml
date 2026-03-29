@@ -1,0 +1,12 @@
+[project]
+name = "minimax-markdown-mcp"
+version = "1.0.0"
+description = "MCP server for efficient markdown file reading and editing — no Python scripts needed"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+minimax-markdown-mcp = "server:main"
+
+[tool.upload]
+distributions = ["sdist", "wheel"]
