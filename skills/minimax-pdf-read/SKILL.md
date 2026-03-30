@@ -20,40 +20,48 @@ Extract and analyze text content from PDF documents using Python.
 
 ## Prerequisites
 
-- Python 3.9+ with `pypdf` installed
+- Python 3.9+
+- Install dependencies: `pip install -r skills/minimax-pdf-read/scripts/requirements.txt`
 - No external API keys required — uses local text extraction
 
 ## Quick Start
 
 ```bash
-pip install pypdf
+pip install -r skills/minimax-pdf-read/scripts/requirements.txt
 python skills/minimax-pdf-read/scripts/extract.py --input document.pdf
 ```
 
-## Tools
+## Scripts
 
-| Tool | Purpose | Install |
+| Script | Purpose | Usage |
 |---|---|---|
-| `pypdf` | Text extraction from PDFs | `pip install pypdf` |
+| `extract.py` | Extract text and metadata from PDFs | See Usage below |
+| `requirements.txt` | Python dependencies | `pip install -r requirements.txt` |
 
 ## Usage
 
 ### Extract all text from a PDF
 
 ```bash
-python -m pypdf document.pdf --extract-text
+python skills/minimax-pdf-read/scripts/extract.py --input document.pdf
 ```
 
 ### Extract text from specific pages
 
 ```bash
-python -m pypdf document.pdf --pages 1-5
+python skills/minimax-pdf-read/scripts/extract.py --input document.pdf --pages 1-5
 ```
 
-### Get PDF metadata
+### Extract to a file
 
 ```bash
-python -m pypdf document.pdf --metadata
+python skills/minimax-pdf-read/scripts/extract.py --input document.pdf --output extracted.txt
+```
+
+### Get PDF metadata only
+
+```bash
+python skills/minimax-pdf-read/scripts/extract.py --input document.pdf --metadata
 ```
 
 ## Workflow
@@ -64,7 +72,13 @@ The skill triggers when a message contains a `.pdf` file path or URL.
 
 ### Step 2: Extract text
 
-Use `pypdf` to extract text content:
+Use the extraction script:
+
+```bash
+python skills/minimax-pdf-read/scripts/extract.py --input document.pdf
+```
+
+Or use pypdf directly for custom processing:
 
 ```python
 from pypdf import PdfReader
