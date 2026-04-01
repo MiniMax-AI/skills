@@ -10,7 +10,9 @@ export DOTNET_CLI_UI_LANGUAGE=en
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 DOTNET_DIR="$SCRIPT_DIR/dotnet"
+CLI_PROJECT="$DOTNET_DIR/MiniMaxAIDocx.Cli/MiniMaxAIDocx.Cli.csproj"
 LOG_FILE="$PROJECT_DIR/.setup.log"
+DEFAULT_NUGET_SOURCE="https://api.nuget.org/v3/index.json"
 
 # --- Colors ---
 RED='\033[0;31m'
@@ -24,6 +26,58 @@ warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 fail()  { echo -e "${RED}[FAIL]${NC}  $*"; }
 info()  { echo -e "${BLUE}[INFO]${NC}  $*"; }
 step()  { echo -e "\n${BLUE}=== $* ===${NC}"; }
+
+trim() {
+    local value="$1"
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
+    printf '%s' "$value"
+}
+
+append_default_restore_sources() {
+    RESTORE_SOURCE_ARGS+=("--source" "$DEFAULT_NUGET_SOURCE")
+    RESTORE_SOURCE_LABELS+=("$DEFAULT_NUGET_SOURCE")
+
+    local local_feed
+    for local_feed in "$DOTNET_DIR/packages" "$PROJECT_DIR/assets/nuget"; do
+        if [ -d "$local_feed" ]; then
+            RESTORE_SOURCE_ARGS+=("--source" "$local_feed")
+            RESTORE_SOURCE_LABELS+=("$local_feed")
+        fi
+    done
+}
+
+collect_restore_sources() {
+    RESTORE_SOURCE_ARGS=()
+    RESTORE_SOURCE_LABELS=()
+    RESTORE_SOURCE_MODE="default"
+
+    local raw_sources="${MINIMAX_DOCX_NUGET_SOURCES:-}"
+    local source
+
+    if [ -n "$raw_sources" ]; then
+        local OLDIFS="$IFS"
+        IFS=';'
+        read -r -a configured_sources <<< "$raw_sources"
+        IFS="$OLDIFS"
+
+        for source in "${configured_sources[@]}"; do
+            source="$(trim "$source")"
+            [ -n "$source" ] || continue
+            RESTORE_SOURCE_ARGS+=("--source" "$source")
+            RESTORE_SOURCE_LABELS+=("$source")
+        done
+
+        if [ "${#RESTORE_SOURCE_ARGS[@]}" -gt 0 ]; then
+            RESTORE_SOURCE_MODE="custom"
+            return
+        fi
+
+        warn "MINIMAX_DOCX_NUGET_SOURCES is set but contains no valid sources; falling back to default NuGet sources."
+    fi
+
+    append_default_restore_sources
+}
 
 # --- Detect OS & Package Manager ---
 detect_platform() {
@@ -265,26 +319,35 @@ build_project() {
         fail "Dotnet project directory not found: $DOTNET_DIR"
         return 1
     fi
+    if [ ! -f "$CLI_PROJECT" ]; then
+        fail "CLI project not found: $CLI_PROJECT"
+        return 1
+    fi
+
+    collect_restore_sources
 
     cd "$DOTNET_DIR"
 
     info "Restoring NuGet packages..."
-    if ! dotnet restore --verbosity quiet 2>>"$LOG_FILE"; then
+    if ! dotnet restore "$CLI_PROJECT" --verbosity quiet --ignore-failed-sources "${RESTORE_SOURCE_ARGS[@]}" 2>>"$LOG_FILE"; then
         fail "NuGet restore failed. Check network and $LOG_FILE for details."
         fail "Common causes:"
-        fail "  - No internet access (NuGet needs to download packages)"
-        fail "  - Corporate proxy blocking nuget.org"
+        fail "  - No internet access to the configured NuGet source(s)"
+        fail "  - Corporate proxy or sandbox DNS blocking nuget.org"
+        fail "  - Custom/local feed missing required packages"
         fail "  - Disk space insufficient"
         echo ""
-        fail "Try manually: cd $DOTNET_DIR && dotnet restore --verbosity detailed"
+        fail "Configured source(s): ${RESTORE_SOURCE_LABELS[*]}"
+        fail "Try manually: dotnet restore \"$CLI_PROJECT\" --verbosity detailed --ignore-failed-sources"
+        fail "Restricted network? Set MINIMAX_DOCX_NUGET_SOURCES='https://mirror.example/v3/index.json;/path/to/local/feed'"
         return 1
     fi
     log "NuGet packages restored"
 
     info "Building project..."
-    if ! dotnet build --verbosity quiet --no-restore 2>>"$LOG_FILE"; then
+    if ! dotnet build "$CLI_PROJECT" --verbosity quiet --no-restore 2>>"$LOG_FILE"; then
         fail "Build failed. Check $LOG_FILE for details."
-        fail "Try manually: cd $DOTNET_DIR && dotnet build --verbosity normal"
+        fail "Try manually: dotnet build \"$CLI_PROJECT\" --verbosity normal"
         return 1
     fi
     log "Project built successfully"
@@ -322,12 +385,30 @@ check_nuget_config() {
         info "No custom NuGet config found (using defaults)"
     fi
 
-    # Test NuGet connectivity
-    if dotnet nuget list source 2>/dev/null | grep -q "nuget.org"; then
-        log "nuget.org source is configured"
+    collect_restore_sources
+
+    if [ "$RESTORE_SOURCE_MODE" = "custom" ]; then
+        info "Using custom restore source(s) from MINIMAX_DOCX_NUGET_SOURCES"
+        local source
+        for source in "${RESTORE_SOURCE_LABELS[@]}"; do
+            log "restore source: $source"
+        done
     else
-        warn "nuget.org not in sources. Adding..."
-        dotnet nuget add source "https://api.nuget.org/v3/index.json" --name "nuget.org" 2>/dev/null || true
+        if dotnet nuget list source 2>/dev/null | grep -q "nuget.org"; then
+            log "nuget.org source is configured"
+        else
+            warn "nuget.org not in sources. Adding..."
+            dotnet nuget add source "$DEFAULT_NUGET_SOURCE" --name "nuget.org" 2>/dev/null || true
+        fi
+
+        local local_feed
+        for local_feed in "$DOTNET_DIR/packages" "$PROJECT_DIR/assets/nuget"; do
+            if [ -d "$local_feed" ]; then
+                log "Detected local NuGet feed: $local_feed"
+            fi
+        done
+
+        info "Set MINIMAX_DOCX_NUGET_SOURCES to override restore source(s) in restricted networks"
     fi
 }
 
@@ -410,7 +491,7 @@ verify_installation() {
     local test_output="/tmp/minimax-docx-setup-test-$$.docx"
 
     info "Creating a test document..."
-    if cd "$DOTNET_DIR" && dotnet run --project MiniMaxAIDocx.Cli -- create \
+    if dotnet run --project "$CLI_PROJECT" -- create \
         --type report --output "$test_output" --title "Setup Test" 2>>"$LOG_FILE"; then
         log "Test document created: $test_output"
 
@@ -446,8 +527,8 @@ print_summary() {
     echo "  Project:     $DOTNET_DIR"
     echo ""
     echo "  Usage:"
-    echo "    dotnet run --project $DOTNET_DIR/MiniMaxAIDocx.Cli -- create --type report --output my_report.docx"
-    echo "    bash $SCRIPT_DIR/env_check.sh     # Quick environment check"
+    echo "    dotnet run --project \"$CLI_PROJECT\" -- create --type report --output my_report.docx"
+    echo "    bash \"$SCRIPT_DIR/env_check.sh\"     # Quick environment check"
     echo ""
     echo "  Log file: $LOG_FILE"
 }
