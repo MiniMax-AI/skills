@@ -70,6 +70,8 @@ check_api_host() {
     echo "[FAIL] MINIMAX_API_HOST not set"
     echo "  China Mainland: export MINIMAX_API_HOST='https://api.minimaxi.com'"
     echo "  Global:         export MINIMAX_API_HOST='https://api.minimax.io'"
+    echo "  If you stored it in ~/.zshrc or ~/.bashrc, restart your IDE/agent so the new value is inherited."
+    echo "  In sandboxed runtimes, you may need to configure the variable in the app's own environment settings."
     return 1
   fi
   if [[ "$api_host" != "https://api.minimaxi.com" && "$api_host" != "https://api.minimax.io" ]]; then
@@ -86,6 +88,8 @@ check_api_key() {
   if [[ -z "$api_key" ]]; then
     echo "[FAIL] MINIMAX_API_KEY not set"
     echo "  export MINIMAX_API_KEY='your-key'"
+    echo "  If you already added it to ~/.zshrc or ~/.bashrc, restart your IDE/agent or launch it from a shell where the variable is exported."
+    echo "  In sandboxed runtimes, set the variable in the tool's environment settings if available."
     return 1
   fi
   if [[ "$api_key" != sk-api* && "$api_key" != sk-cp* ]]; then
