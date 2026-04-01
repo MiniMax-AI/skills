@@ -83,6 +83,37 @@ Before running any script, check if `MINIMAX_API_KEY` is set in the environment.
 1. Ask the user to provide their MiniMax API key
 2. Instruct and help user to set it via `export MINIMAX_API_KEY="sk-..."` in their terminal or add it to their shell profile (`~/.zshrc` / `~/.bashrc`) for persistence
 
+## Plan Limits & Quotas
+
+**IMPORTANT — Always respect the user's plan limits before generating content.** If the user's quota is exhausted or insufficient, warn them before proceeding.
+
+### Standard Plans
+
+| Capability | Starter | Plus | Max |
+|---|---|---|---|
+| M2.7 (chat) | 600 req/5h | 1,500 req/5h | 4,500 req/5h |
+| Speech 2.8 | — | 4,000 chars/day | 11,000 chars/day |
+| image-01 | — | 50 images/day | 120 images/day |
+| Hailuo-2.3-Fast 768P 6s | — | — | 2 videos/day |
+| Hailuo-2.3 768P 6s | — | — | 2 videos/day |
+| Music-2.5 | — | — | 4 songs/day (≤5 min each) |
+
+### High-Speed Plans
+
+| Capability | Plus-HS | Max-HS | Ultra-HS |
+|---|---|---|---|
+| M2.7-highspeed (chat) | 1,500 req/5h | 4,500 req/5h | 30,000 req/5h |
+| Speech 2.8 | 9,000 chars/day | 19,000 chars/day | 50,000 chars/day |
+| image-01 | 100 images/day | 200 images/day | 800 images/day |
+| Hailuo-2.3-Fast 768P 6s | — | 3 videos/day | 5 videos/day |
+| Hailuo-2.3 768P 6s | — | 3 videos/day | 5 videos/day |
+| Music-2.5 | — | 7 songs/day (≤5 min each) | 15 songs/day (≤5 min each) |
+
+**Key quota constraints:**
+- **Video resolution: 768P only** — 1080P is not available on any plan
+- **Video duration: 6s** — all plan quotas are counted in 6-second units
+- **Video quota is very limited** (2–5/day depending on plan) — always confirm with the user before generating video
+
 ## Key Capabilities
 
 | Capability | Description | Entry point |
@@ -392,40 +423,30 @@ bash "$SKILL_DIR"/scripts/image/generate_image.sh \
 
 | User intent | Script to use |
 |-------------|---------------|
-| Default / no special request | `scripts/video/generate_video.sh` (single segment, **10s, 768P**) |
+| Default / no special request | `scripts/video/generate_video.sh` (single segment, **6s, 768P**) |
 | User explicitly asks for "long video", "multi-scene", "story", or duration > 10s | `scripts/video/generate_long_video.sh` (multi-segment) |
 
-**Default behavior:** Always use single-segment `generate_video.sh` with **duration 10s and resolution 768P** unless the user explicitly asks for a long video, multi-scene video, or specifies a total duration exceeding 10 seconds. Do NOT automatically split into multiple segments — a single 10s video is the standard output. Only use `generate_long_video.sh` when the user clearly needs multi-scene or longer content.
+**Default behavior:** Always use single-segment `generate_video.sh` with **duration 6s and resolution 768P** unless the user explicitly asks for a long video or multi-scene video. Do NOT automatically split into multiple segments — a single 6s video is the standard output. Only use `generate_long_video.sh` when the user clearly needs multi-scene or longer content.
 
 Entry point (single video): `SKILL_DIR/scripts/video/generate_video.sh`
 Entry point (long/multi-scene): `SKILL_DIR/scripts/video/generate_long_video.sh`
 
 ### Video Model Constraints (MUST follow)
 
-**Duration limits by model and resolution:**
+**Supported resolutions and durations by model:**
 
-| Model | 720P | 768P | 1080P |
-|-------|------|------|-------|
-| MiniMax-Hailuo-2.3 | - | 6s or **10s** | 6s only |
-| MiniMax-Hailuo-2.3-Fast | - | 6s or **10s** | 6s only |
-| MiniMax-Hailuo-02 | - | 6s or **10s** | 6s only |
-| T2V-01 / T2V-01-Director | 6s only | - | - |
-| I2V-01 / I2V-01-Director / I2V-01-live | 6s only | - | - |
-| S2V-01 (ref) | 6s only | - | - |
-
-**Resolution options by model and duration:**
-
-| Model | 6s | 10s |
-|-------|-----|-----|
-| MiniMax-Hailuo-2.3 | 768P (default), 1080P | 768P only |
-| MiniMax-Hailuo-2.3-Fast | 768P (default), 1080P | 768P only |
-| MiniMax-Hailuo-02 | 512P, 768P (default), 1080P | 512P, 768P (default) |
-| Other models | 720P (default) | Not supported |
+| Model | Resolution | Duration |
+|-------|-----------|----------|
+| MiniMax-Hailuo-2.3 | 768P only | 6s or 10s |
+| MiniMax-Hailuo-2.3-Fast | 768P only | 6s or 10s |
+| MiniMax-Hailuo-02 | 512P, 768P (default) | 6s or 10s |
+| T2V-01 / T2V-01-Director | 720P | 6s only |
+| I2V-01 / I2V-01-Director / I2V-01-live | 720P | 6s only |
+| S2V-01 (ref) | 720P | 6s only |
 
 **Key rules:**
-- **Default: 10s + 768P** (best balance of length and quality for MiniMax-Hailuo-2.3)
-- 1080P only supports 6s duration — if user requests 1080P, set `--duration 6`
-- 10s duration only works with 768P (or 512P on Hailuo-02) — never combine 10s + 1080P
+- **Default: 6s + 768P** — plan quotas are counted in 6-second units; use 6s unless user explicitly requests 10s
+- **1080P is NOT supported** on any plan — always use 768P for Hailuo-2.3/2.3-Fast
 - Older models (T2V-01, I2V-01, S2V-01) only support 6s at 720P
 
 ### IMPORTANT: Prompt Optimization (MUST follow before generating any video)
@@ -488,7 +509,7 @@ bash "$SKILL_DIR"/scripts/video/generate_video.sh \
 
 ### Long-form Video (Multi-scene)
 
-Multi-scene long videos chain segments together: the first segment generates via text-to-video (t2v), then each subsequent segment uses the last frame of the previous segment as its first frame (i2v). Segments are joined with crossfade transitions for smooth continuity. Default is 10 seconds per segment.
+Multi-scene long videos chain segments together: the first segment generates via text-to-video (t2v), then each subsequent segment uses the last frame of the previous segment as its first frame (i2v). Segments are joined with crossfade transitions for smooth continuity. Default is 6 seconds per segment.
 
 **Workflow:**
 1. Segment 1: t2v — generated purely from the optimized text prompt
@@ -501,7 +522,7 @@ Multi-scene long videos chain segments together: the first segment generates via
 - Segment 1 (t2v): Full scene description with subject, scene, camera, atmosphere
 - Segment 2+ (i2v): Focus on **what changes and moves** from the previous ending frame. Do NOT repeat the visual description — the first frame already provides it
 - Maintain visual consistency: keep lighting, color grading, and style keywords consistent across segments
-- Each segment covers only 10 seconds of action — keep it focused
+- Each segment covers only 6 seconds of action — keep it focused
 
 ```bash
 # Example: 3-segment story with optimized per-segment prompts (default: 10s/segment, 768P)
@@ -516,7 +537,7 @@ bash "$SKILL_DIR"/scripts/video/generate_long_video.sh \
 # With custom settings
 bash "$SKILL_DIR"/scripts/video/generate_long_video.sh \
   --scenes "Scene 1 prompt" "Scene 2 prompt" \
-  --segment-duration 10 \
+  --segment-duration 6 \
   --resolution 768P \
   --crossfade 0.5 \
   --music-prompt "calm ambient background music" \
@@ -547,8 +568,8 @@ bash "$SKILL_DIR"/scripts/video/generate_template_video.sh \
 
 | Mode | Default Model | Default Duration | Default Resolution | Notes |
 |------|--------------|-----------------|-------------------|-------|
-| t2v | MiniMax-Hailuo-2.3 | 10s | 768P | Latest text-to-video |
-| i2v | MiniMax-Hailuo-2.3 | 10s | 768P | Latest image-to-video |
+| t2v | MiniMax-Hailuo-2.3 | 6s | 768P | Latest text-to-video |
+| i2v | MiniMax-Hailuo-2.3 | 6s | 768P | Latest image-to-video |
 | sef | MiniMax-Hailuo-02 | 6s | 768P | Start-end frame |
 | ref | S2V-01 | 6s | 720P | Subject reference, 6s only |
 

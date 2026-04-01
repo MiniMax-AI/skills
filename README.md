@@ -22,6 +22,7 @@ Development skills for AI coding agents. Plug into your favorite AI coding tool 
 | `pptx-generator` | Generate, edit, and read PowerPoint presentations. Create from scratch with PptxGenJS (cover, TOC, content, section divider, summary slides), edit existing PPTX via XML workflows, or extract text with markitdown. | Official |
 | `minimax-xlsx` | Open, create, read, analyze, edit, or validate Excel/spreadsheet files (.xlsx, .xlsm, .csv, .tsv). Covers creating new xlsx from scratch via XML templates, reading and analyzing with pandas, editing existing files with zero format loss, formula recalculation, validation, and professional financial formatting. | Official |
 | `minimax-docx` | Professional DOCX document creation, editing, and formatting using OpenXML SDK (.NET). Three pipelines: create new documents from scratch, fill/edit content in existing documents, or apply template formatting with XSD validation gate-check. | Official |
+| `vision-analysis` | Analyze, describe, and extract information from images using vision AI models. Supports describe, OCR, UI mockup review, chart data extraction, and object detection. Powered by MiniMax VL API with OpenAI GPT-4V fallback. | Community |
 | `minimax-multimodal-toolkit` | Generate voice, music, video, and image content via MiniMax APIs — the unified entry for MiniMax multimodal use cases. Covers TTS (text-to-speech, voice cloning, voice design, multi-segment), music (songs, instrumentals), video (text-to-video, image-to-video, start-end frame, subject reference, templates, long-form multi-scene), image (text-to-image, image-to-image with character reference), and media processing (convert, concat, trim, extract) via FFmpeg. | Official |
 
 ## Installation
@@ -40,6 +41,7 @@ git clone https://github.com/MiniMax-AI/skills.git ~/.cursor/minimax-skills
 ```
 
 Add to your Cursor settings — point the skills path to `~/.cursor/minimax-skills/skills/`.
+For Windows setup and verification, see [`.cursor-plugin/INSTALL.md`](.cursor-plugin/INSTALL.md).
 
 ### Codex
 
@@ -62,6 +64,17 @@ ln -s ~/.minimax-skills/skills/* ~/.config/opencode/skills/
 ```
 
 Restart OpenCode to discover the skills. See [`.opencode/INSTALL.md`](.opencode/INSTALL.md) for details.
+
+### VS Code
+
+This repository does not currently ship a standalone VS Code extension.
+
+If you use VS Code, the supported approach is to run one of the supported CLI tools inside the integrated terminal:
+- Codex
+- Claude Code
+- OpenCode
+
+If you want native local-skills configuration from this repo, use Cursor and follow [`.cursor-plugin/INSTALL.md`](.cursor-plugin/INSTALL.md).
 
 ## Contributing
 
