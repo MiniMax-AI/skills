@@ -18,11 +18,18 @@ metadata:
 
 Generate voice, music, video, and image content via MiniMax APIs — the unified entry for **MiniMax multimodal** use cases (audio + music + video + image). Includes voice cloning & voice design for custom voices, image generation with character reference, and FFmpeg-based media tools for audio/video format conversion, concatenation, trimming, and extraction.
 
+Set an absolute skill path once per session:
+
+```bash
+export SKILL_DIR="/absolute/path/to/minimax-skills/skills/minimax-multimodal-toolkit"
+```
+
 ## Output Directory
 
 **All generated files MUST be saved to `minimax-output/` under the AGENT'S current working directory (NOT the skill directory).** Every script call MUST include an explicit `--output` / `-o` argument pointing to this location. Never omit the output argument or rely on script defaults.
 
 **Rules:**
+
 1. Before running any script, ensure `minimax-output/` exists in the agent's working directory (create if needed: `mkdir -p minimax-output`)
 2. Always use absolute or relative paths from the agent's working directory: `--output minimax-output/video.mp4`
 3. **Never** `cd` into the skill directory to run scripts — run from the agent's working directory using the full script path
@@ -32,7 +39,7 @@ Generate voice, music, video, and image content via MiniMax APIs — the unified
 
 ```bash
 brew install ffmpeg jq              # macOS (or apt install ffmpeg jq on Linux)
-bash scripts/check_environment.sh
+bash "$SKILL_DIR"/scripts/check_environment.sh
 ```
 
 No Python or pip required — all scripts are pure bash using `curl`, `ffmpeg`, `jq`, and `xxd`.
@@ -122,7 +129,7 @@ Before running any script, check if `MINIMAX_API_KEY` is set in the environment.
 
 ## TTS (Text-to-Speech)
 
-Entry point: `scripts/tts/generate_voice.sh`
+Entry point: `SKILL_DIR/scripts/tts/generate_voice.sh`
 
 ### IMPORTANT: Single voice vs Multi-segment — Choose the right approach
 
@@ -141,8 +148,8 @@ Only use multi-segment `generate` when:
 ### Single-voice generation (DEFAULT)
 
 ```bash
-bash scripts/tts/generate_voice.sh tts "Hello world" -o minimax-output/hello.mp3
-bash scripts/tts/generate_voice.sh tts "你好世界" -v female-shaonv -o minimax-output/hello_cn.mp3
+bash "$SKILL_DIR"/scripts/tts/generate_voice.sh tts "Hello world" -o minimax-output/hello.mp3
+bash "$SKILL_DIR"/scripts/tts/generate_voice.sh tts "你好世界" -v female-shaonv -o minimax-output/hello_cn.mp3
 ```
 
 ### Multi-segment generation (multi-voice / audiobook / podcast)
@@ -158,7 +165,7 @@ bash scripts/tts/generate_voice.sh tts "你好世界" -v female-shaonv -o minima
 
 # Step 2: Generate audio from segments.json — this is the CRITICAL step
 # It generates each segment individually and merges them into one file
-bash scripts/tts/generate_voice.sh generate minimax-output/segments.json \
+bash "$SKILL_DIR"/scripts/tts/generate_voice.sh generate minimax-output/segments.json \
   -o minimax-output/output.mp3 --crossfade 200
 ```
 
@@ -168,20 +175,20 @@ bash scripts/tts/generate_voice.sh generate minimax-output/segments.json \
 
 ```bash
 # List all available voices
-bash scripts/tts/generate_voice.sh list-voices
+bash "$SKILL_DIR"/scripts/tts/generate_voice.sh list-voices
 
 # Voice cloning (from audio sample, 10s–5min)
-bash scripts/tts/generate_voice.sh clone sample.mp3 --voice-id my-voice
+bash "$SKILL_DIR"/scripts/tts/generate_voice.sh clone sample.mp3 --voice-id my-voice
 
 # Voice design (from text description)
-bash scripts/tts/generate_voice.sh design "A warm female narrator voice" --voice-id narrator
+bash "$SKILL_DIR"/scripts/tts/generate_voice.sh design "A warm female narrator voice" --voice-id narrator
 ```
 
 ### Audio processing
 
 ```bash
-bash scripts/tts/generate_voice.sh merge part1.mp3 part2.mp3 -o minimax-output/combined.mp3
-bash scripts/tts/generate_voice.sh convert input.wav -o minimax-output/output.mp3
+bash "$SKILL_DIR"/scripts/tts/generate_voice.sh merge part1.mp3 part2.mp3 -o minimax-output/combined.mp3
+bash "$SKILL_DIR"/scripts/tts/generate_voice.sh convert input.wav -o minimax-output/output.mp3
 ```
 
 ### TTS Models
@@ -238,36 +245,37 @@ A sentence like `"Tom said: The weather is great today!"` must be split into two
 
 ## Music Generation
 
-Entry point: `scripts/music/generate_music.sh`
+Entry point: `SKILL_DIR/scripts/music/generate_music.sh`
 
 ### IMPORTANT: Instrumental vs Lyrics — When to use which
 
-| Scenario | Mode | Action |
-|----------|------|--------|
-| BGM for video / voice / podcast | Instrumental (default) | Use `--instrumental` directly, do NOT ask user |
-| User explicitly asks to "create music" / "make a song" | Ask user first | Ask whether they want instrumental or with lyrics |
+| Scenario                                               | Mode                   | Action                                            |
+| ------------------------------------------------------ | ---------------------- | ------------------------------------------------- |
+| BGM for video / voice / podcast                        | Instrumental (default) | Use `--instrumental` directly, do NOT ask user    |
+| User explicitly asks to "create music" / "make a song" | Ask user first         | Ask whether they want instrumental or with lyrics |
 
 **When adding background music to video or voice content**, always default to instrumental mode (`--instrumental`). Do not ask the user — BGM should never have vocals competing with the main content.
 
 **When the user explicitly asks to create/generate music as the primary task**, ask them whether they want:
+
 - Instrumental (pure music, no vocals)
 - With lyrics (song with vocals — user provides or you help write lyrics)
 
 ```bash
 # Instrumental (for BGM or when user chooses instrumental)
-bash scripts/music/generate_music.sh \
+bash "$SKILL_DIR"/scripts/music/generate_music.sh \
   --instrumental \
   --prompt "ambient electronic, atmospheric" \
   --output minimax-output/ambient.mp3 --download
 
 # Song with lyrics (when user chooses vocal music)
-bash scripts/music/generate_music.sh \
+bash "$SKILL_DIR"/scripts/music/generate_music.sh \
   --lyrics "[verse]\nHello world\n[chorus]\nLa la la" \
   --prompt "indie folk, melancholic" \
   --output minimax-output/song.mp3 --download
 
 # With style fields
-bash scripts/music/generate_music.sh \
+bash "$SKILL_DIR"/scripts/music/generate_music.sh \
   --lyrics "[verse]\nLyrics here" \
   --genre "pop" --mood "upbeat" --tempo "fast" \
   --output minimax-output/pop_track.mp3 --download
@@ -301,61 +309,61 @@ Model: `image-01` — photorealistic image generation from text prompts, with op
 
 Do NOT always default to `1:1`. Analyze the user's request and choose the most appropriate aspect ratio:
 
-| User intent / context | Recommended ratio | Resolution |
-|-----------------------|-------------------|------------|
-| 头像、图标、社交媒体头像、avatar、icon、profile pic | `1:1` | 1024×1024 |
-| 风景、横幅、桌面壁纸、landscape、banner、desktop wallpaper | `16:9` | 1280×720 |
-| 传统照片、经典比例、classic photo | `4:3` | 1152×864 |
-| 摄影作品、杂志封面、photography、magazine | `3:2` | 1248×832 |
-| 人像竖图、海报、portrait photo、poster | `2:3` | 832×1248 |
-| 竖版海报、书籍封面、tall poster、book cover | `3:4` | 864×1152 |
-| 手机壁纸、社交媒体故事、phone wallpaper、story、reel | `9:16` | 720×1280 |
-| 超宽全景、电影画幅、panoramic、cinematic ultrawide | `21:9` | 1344×576 |
-| 未指定特定需求 / ambiguous | `1:1` | 1024×1024 |
+| User intent / context                                      | Recommended ratio | Resolution |
+| ---------------------------------------------------------- | ----------------- | ---------- |
+| 头像、图标、社交媒体头像、avatar、icon、profile pic        | `1:1`             | 1024×1024  |
+| 风景、横幅、桌面壁纸、landscape、banner、desktop wallpaper | `16:9`            | 1280×720   |
+| 传统照片、经典比例、classic photo                          | `4:3`             | 1152×864   |
+| 摄影作品、杂志封面、photography、magazine                  | `3:2`             | 1248×832   |
+| 人像竖图、海报、portrait photo、poster                     | `2:3`             | 832×1248   |
+| 竖版海报、书籍封面、tall poster、book cover                | `3:4`             | 864×1152   |
+| 手机壁纸、社交媒体故事、phone wallpaper、story、reel       | `9:16`            | 720×1280   |
+| 超宽全景、电影画幅、panoramic、cinematic ultrawide         | `21:9`            | 1344×576   |
+| 未指定特定需求 / ambiguous                                 | `1:1`             | 1024×1024  |
 
 ### IMPORTANT: Image Count — When to generate multiple images
 
-| User intent | Count (`-n`) |
-|-------------|--------------|
-| Default / single image request | `1` (default) |
-| 用户说"几张"、"多张"、"一些" / "a few", "several" | `3` |
-| 用户说"多种方案"、"备选" / "variations", "options" | `3`–`4` |
-| 用户明确指定数量 | Use the specified number (1–9) |
+| User intent                                        | Count (`-n`)                   |
+| -------------------------------------------------- | ------------------------------ |
+| Default / single image request                     | `1` (default)                  |
+| 用户说"几张"、"多张"、"一些" / "a few", "several"  | `3`                            |
+| 用户说"多种方案"、"备选" / "variations", "options" | `3`–`4`                        |
+| 用户明确指定数量                                   | Use the specified number (1–9) |
 
 ### Text-to-Image Examples
 
 ```bash
 # Basic text-to-image
-bash scripts/image/generate_image.sh \
+bash "$SKILL_DIR"/scripts/image/generate_image.sh \
   --prompt "A cat sitting on a rooftop at sunset, cinematic lighting, warm tones, photorealistic" \
   -o minimax-output/cat.png
 
 # Landscape with inferred aspect ratio
-bash scripts/image/generate_image.sh \
+bash "$SKILL_DIR"/scripts/image/generate_image.sh \
   --prompt "Mountain landscape with misty valleys, photorealistic, golden hour" \
   --aspect-ratio 16:9 \
   -o minimax-output/landscape.png
 
 # Phone wallpaper (portrait 9:16)
-bash scripts/image/generate_image.sh \
+bash "$SKILL_DIR"/scripts/image/generate_image.sh \
   --prompt "Aurora borealis over a snowy forest, vivid colors, magical atmosphere" \
   --aspect-ratio 9:16 \
   -o minimax-output/wallpaper.png
 
 # Multiple variations
-bash scripts/image/generate_image.sh \
+bash "$SKILL_DIR"/scripts/image/generate_image.sh \
   --prompt "Abstract geometric art, vibrant colors" \
   -n 3 \
   -o minimax-output/art.png
 
 # With prompt optimizer
-bash scripts/image/generate_image.sh \
+bash "$SKILL_DIR"/scripts/image/generate_image.sh \
   --prompt "A man standing on Venice Beach, 90s documentary style" \
   --aspect-ratio 16:9 --prompt-optimizer \
   -o minimax-output/beach.png
 
 # Custom dimensions (must be multiple of 8)
-bash scripts/image/generate_image.sh \
+bash "$SKILL_DIR"/scripts/image/generate_image.sh \
   --prompt "Product photo of a luxury watch on marble surface" \
   --width 1024 --height 768 \
   -o minimax-output/watch.png
@@ -367,7 +375,7 @@ Use a reference photo to generate images with the same character in new scenes. 
 
 ```bash
 # Character reference — place same person in a new scene
-bash scripts/image/generate_image.sh \
+bash "$SKILL_DIR"/scripts/image/generate_image.sh \
   --mode i2i \
   --prompt "A girl looking into the distance from a library window, warm afternoon light" \
   --ref-image face.jpg \
@@ -375,7 +383,7 @@ bash scripts/image/generate_image.sh \
   -o minimax-output/girl_library.png
 
 # Multiple character variations
-bash scripts/image/generate_image.sh \
+bash "$SKILL_DIR"/scripts/image/generate_image.sh \
   --mode i2i \
   --prompt "A woman in a red dress at a gala event, elegant, cinematic" \
   --ref-image face.jpg -n 3 \
@@ -420,8 +428,8 @@ bash scripts/image/generate_image.sh \
 
 **Default behavior:** Always use single-segment `generate_video.sh` with **duration 6s and resolution 768P** unless the user explicitly asks for a long video or multi-scene video. Do NOT automatically split into multiple segments — a single 6s video is the standard output. Only use `generate_long_video.sh` when the user clearly needs multi-scene or longer content.
 
-Entry point (single video): `scripts/video/generate_video.sh`
-Entry point (long/multi-scene): `scripts/video/generate_long_video.sh`
+Entry point (single video): `SKILL_DIR/scripts/video/generate_video.sh`
+Entry point (long/multi-scene): `SKILL_DIR/scripts/video/generate_long_video.sh`
 
 ### Video Model Constraints (MUST follow)
 
@@ -464,27 +472,34 @@ Before calling any video generation script, you MUST optimize the user's prompt 
 6. **For multi-segment long videos**: Each segment's prompt must be self-contained and optimized individually. The i2v segments (segment 2+) should describe motion/change relative to the previous segment's ending frame.
 
 ```bash
-# Text-to-video (default: 6s, 768P)
-bash scripts/video/generate_video.sh \
+# Text-to-video (default: 10s, 768P)
+bash "$SKILL_DIR"/scripts/video/generate_video.sh \
   --mode t2v \
   --prompt "A golden retriever puppy bounds toward the camera on a sunlit grass path, [跟随] tracking shot, warm golden hour, shallow depth of field, joyful" \
   --output minimax-output/puppy.mp4
 
+# Text-to-video with 1080P (must use --duration 6)
+bash "$SKILL_DIR"/scripts/video/generate_video.sh \
+  --mode t2v \
+  --prompt "A golden retriever puppy bounds toward the camera" \
+  --duration 6 --resolution 1080P \
+  --output minimax-output/puppy_hd.mp4
+
 # Image-to-video (prompt focuses on MOTION, not image content)
-bash scripts/video/generate_video.sh \
+bash "$SKILL_DIR"/scripts/video/generate_video.sh \
   --mode i2v \
   --prompt "The petals begin to sway gently in the breeze, soft light shifts across the surface, [固定] fixed framing, dreamy pastel tones" \
   --first-frame photo.jpg \
   --output minimax-output/animated.mp4
 
 # Start-end frame interpolation (sef mode uses MiniMax-Hailuo-02)
-bash scripts/video/generate_video.sh \
+bash "$SKILL_DIR"/scripts/video/generate_video.sh \
   --mode sef \
   --first-frame start.jpg --last-frame end.jpg \
   --output minimax-output/transition.mp4
 
 # Subject reference (face consistency, ref mode uses S2V-01, 6s only)
-bash scripts/video/generate_video.sh \
+bash "$SKILL_DIR"/scripts/video/generate_video.sh \
   --mode ref \
   --prompt "A young woman in a white dress walks slowly through a sunlit garden, [跟随] smooth tracking, warm natural lighting, cinematic depth of field" \
   --subject-image face.jpg \
@@ -510,8 +525,8 @@ Multi-scene long videos chain segments together: the first segment generates via
 - Each segment covers only 6 seconds of action — keep it focused
 
 ```bash
-# Example: 3-segment story with optimized per-segment prompts (default: 6s/segment, 768P)
-bash scripts/video/generate_long_video.sh \
+# Example: 3-segment story with optimized per-segment prompts (default: 10s/segment, 768P)
+bash "$SKILL_DIR"/scripts/video/generate_long_video.sh \
   --scenes \
     "A lone astronaut stands on a red desert planet surface, wind blowing dust particles, [推进] slow push in toward the visor, dramatic rim lighting, cinematic sci-fi atmosphere" \
     "The astronaut turns and begins walking toward a distant glowing structure on the horizon, dust swirling around boots, [跟随] tracking from behind, vast desolate landscape, golden light from the structure" \
@@ -520,7 +535,7 @@ bash scripts/video/generate_long_video.sh \
   --output minimax-output/long_video.mp4
 
 # With custom settings
-bash scripts/video/generate_long_video.sh \
+bash "$SKILL_DIR"/scripts/video/generate_long_video.sh \
   --scenes "Scene 1 prompt" "Scene 2 prompt" \
   --segment-duration 6 \
   --resolution 768P \
@@ -532,7 +547,7 @@ bash scripts/video/generate_long_video.sh \
 ### Add Background Music
 
 ```bash
-bash scripts/video/add_bgm.sh \
+bash "$SKILL_DIR"/scripts/video/add_bgm.sh \
   --video input.mp4 \
   --generate-bgm --instrumental \
   --music-prompt "soft piano background" \
@@ -543,7 +558,7 @@ bash scripts/video/add_bgm.sh \
 ### Template Video
 
 ```bash
-bash scripts/video/generate_template_video.sh \
+bash "$SKILL_DIR"/scripts/video/generate_template_video.sh \
   --template-id 392753057216684038 \
   --media photo.jpg \
   --output minimax-output/template_output.mp4
@@ -560,7 +575,7 @@ bash scripts/video/generate_template_video.sh \
 
 ## Media Tools (Audio/Video Processing)
 
-Entry point: `scripts/media_tools.sh`
+Entry point: `SKILL_DIR/scripts/media_tools.sh`
 
 Standalone FFmpeg-based utilities for format conversion, concatenation, extraction, trimming, and audio overlay. Use these when the user needs to process existing media files without generating new content via MiniMax API.
 
@@ -568,11 +583,11 @@ Standalone FFmpeg-based utilities for format conversion, concatenation, extracti
 
 ```bash
 # Convert between formats (mp4, mov, webm, mkv, avi, ts, flv)
-bash scripts/media_tools.sh convert-video input.webm -o output.mp4
-bash scripts/media_tools.sh convert-video input.mp4 -o output.mov
+bash "$SKILL_DIR"/scripts/media_tools.sh convert-video input.webm -o output.mp4
+bash "$SKILL_DIR"/scripts/media_tools.sh convert-video input.mp4 -o output.mov
 
 # With quality / resolution / fps options
-bash scripts/media_tools.sh convert-video input.mp4 -o output.mp4 \
+bash "$SKILL_DIR"/scripts/media_tools.sh convert-video input.mp4 -o output.mp4 \
   --crf 18 --preset medium --resolution 1920x1080 --fps 30
 ```
 
@@ -580,8 +595,8 @@ bash scripts/media_tools.sh convert-video input.mp4 -o output.mp4 \
 
 ```bash
 # Convert between formats (mp3, wav, flac, ogg, aac, m4a, opus, wma)
-bash scripts/media_tools.sh convert-audio input.wav -o output.mp3
-bash scripts/media_tools.sh convert-audio input.mp3 -o output.flac \
+bash "$SKILL_DIR"/scripts/media_tools.sh convert-audio input.wav -o output.mp3
+bash "$SKILL_DIR"/scripts/media_tools.sh convert-audio input.mp3 -o output.flac \
   --bitrate 320k --sample-rate 48000 --channels 2
 ```
 
@@ -589,58 +604,58 @@ bash scripts/media_tools.sh convert-audio input.mp3 -o output.flac \
 
 ```bash
 # Concatenate with crossfade transition (default 0.5s)
-bash scripts/media_tools.sh concat-video seg1.mp4 seg2.mp4 seg3.mp4 -o merged.mp4
+bash "$SKILL_DIR"/scripts/media_tools.sh concat-video seg1.mp4 seg2.mp4 seg3.mp4 -o merged.mp4
 
 # Hard cut (no crossfade)
-bash scripts/media_tools.sh concat-video seg1.mp4 seg2.mp4 -o merged.mp4 --crossfade 0
+bash "$SKILL_DIR"/scripts/media_tools.sh concat-video seg1.mp4 seg2.mp4 -o merged.mp4 --crossfade 0
 ```
 
 ### Audio Concatenation
 
 ```bash
 # Simple concatenation
-bash scripts/media_tools.sh concat-audio part1.mp3 part2.mp3 -o combined.mp3
+bash "$SKILL_DIR"/scripts/media_tools.sh concat-audio part1.mp3 part2.mp3 -o combined.mp3
 
 # With crossfade
-bash scripts/media_tools.sh concat-audio part1.mp3 part2.mp3 -o combined.mp3 --crossfade 1
+bash "$SKILL_DIR"/scripts/media_tools.sh concat-audio part1.mp3 part2.mp3 -o combined.mp3 --crossfade 1
 ```
 
 ### Extract Audio from Video
 
 ```bash
 # Extract as mp3
-bash scripts/media_tools.sh extract-audio video.mp4 -o audio.mp3
+bash "$SKILL_DIR"/scripts/media_tools.sh extract-audio video.mp4 -o audio.mp3
 
 # Extract as wav with higher bitrate
-bash scripts/media_tools.sh extract-audio video.mp4 -o audio.wav --bitrate 320k
+bash "$SKILL_DIR"/scripts/media_tools.sh extract-audio video.mp4 -o audio.wav --bitrate 320k
 ```
 
 ### Video Trimming
 
 ```bash
 # Trim by start/end time (seconds)
-bash scripts/media_tools.sh trim-video input.mp4 -o clip.mp4 --start 5 --end 15
+bash "$SKILL_DIR"/scripts/media_tools.sh trim-video input.mp4 -o clip.mp4 --start 5 --end 15
 
 # Trim by start + duration
-bash scripts/media_tools.sh trim-video input.mp4 -o clip.mp4 --start 10 --duration 8
+bash "$SKILL_DIR"/scripts/media_tools.sh trim-video input.mp4 -o clip.mp4 --start 10 --duration 8
 ```
 
 ### Add Audio to Video (Overlay / Replace)
 
 ```bash
 # Mix audio with existing video audio
-bash scripts/media_tools.sh add-audio --video video.mp4 --audio bgm.mp3 -o output.mp4 \
+bash "$SKILL_DIR"/scripts/media_tools.sh add-audio --video video.mp4 --audio bgm.mp3 -o output.mp4 \
   --volume 0.3 --fade-in 2 --fade-out 3
 
 # Replace original audio entirely
-bash scripts/media_tools.sh add-audio --video video.mp4 --audio narration.mp3 -o output.mp4 \
+bash "$SKILL_DIR"/scripts/media_tools.sh add-audio --video video.mp4 --audio narration.mp3 -o output.mp4 \
   --replace
 ```
 
 ### Media File Info
 
 ```bash
-bash scripts/media_tools.sh probe input.mp4
+bash "$SKILL_DIR"/scripts/media_tools.sh probe input.mp4
 ```
 
 ## Script Architecture

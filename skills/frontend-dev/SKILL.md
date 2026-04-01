@@ -173,7 +173,14 @@ project/
 2. Plan motion sequences following performance guardrails
 
 ### Phase 3: Asset Generation
-Generate all image/video/audio assets using `scripts/`. NEVER use placeholder URLs (unsplash, picsum, placeholder.com, via.placeholder, placehold.co, etc.) or external URLs.
+
+Set an absolute skill path once per session:
+
+```bash
+export SKILL_DIR="/absolute/path/to/minimax-skills/skills/frontend-dev"
+```
+
+Generate all image/video/audio assets using `SKILL_DIR/scripts/`. NEVER use placeholder URLs (unsplash, picsum, placeholder.com, via.placeholder, placehold.co, etc.) or external URLs.
 
 1. Parse asset requirements (type, style, spec, usage)
 2. Craft optimized prompts, show to user, confirm before generating
