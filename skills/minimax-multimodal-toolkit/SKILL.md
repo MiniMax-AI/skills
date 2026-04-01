@@ -54,12 +54,15 @@ export MINIMAX_API_HOST="https://api.minimaxi.com"
 export MINIMAX_API_HOST="https://api.minimax.io"
 ```
 
+**Sandboxed agent note:** if you are using Claude Code, Codex, Cursor, or another sandboxed AI runtime, updating `~/.zshrc` / `~/.bashrc` alone may not affect an already-running app session. After changing your shell profile, restart the IDE/agent, or launch it from a terminal where `MINIMAX_API_HOST` is already exported. If the tool has its own environment-variable settings, configure the value there as well.
+
 **IMPORTANT — When API Host is missing:**
 Before running any script, check if `MINIMAX_API_HOST` is set in the environment. If it is NOT configured:
 1. Ask the user which service endpoint their MiniMax account uses:
    - **China Mainland** → `https://api.minimaxi.com`
    - **Global** → `https://api.minimax.io`
-2. Instruct and help user to set it via `export MINIMAX_API_HOST="https://api.minimaxi.com"` (or the global variant) in their terminal or add it to their shell profile (`~/.zshrc` / `~/.bashrc`) for persistence
+2. Instruct and help user to set it via `export MINIMAX_API_HOST="https://api.minimaxi.com"` (or the global variant) in the same terminal session, or add it to their shell profile (`~/.zshrc` / `~/.bashrc`) for persistence
+3. If they are using a sandboxed agent/IDE, tell them to restart the app after updating their profile, or configure the variable in the tool's own environment settings if available
 
 ### API Key Configuration
 
@@ -71,10 +74,13 @@ export MINIMAX_API_KEY="your-api-key-here"
 
 The key starts with `sk-api-` or `sk-cp-`, obtainable from https://platform.minimaxi.com (China) or https://platform.minimax.io (Global)
 
+**Sandboxed agent note:** if you save `MINIMAX_API_KEY` to `~/.zshrc` / `~/.bashrc`, an already-running AI tool may still not see it. Restart the IDE/agent after updating your shell profile, or start the tool from a terminal where the key is already exported. If the tool exposes its own environment-variable configuration, prefer that.
+
 **IMPORTANT — When API Key is missing:**
 Before running any script, check if `MINIMAX_API_KEY` is set in the environment. If it is NOT configured:
 1. Ask the user to provide their MiniMax API key
-2. Instruct and help user to set it via `export MINIMAX_API_KEY="sk-..."` in their terminal or add it to their shell profile (`~/.zshrc` / `~/.bashrc`) for persistence
+2. Instruct and help user to set it via `export MINIMAX_API_KEY="sk-..."` in the same terminal session, or add it to their shell profile (`~/.zshrc` / `~/.bashrc`) for persistence
+3. If they are using a sandboxed agent/IDE, tell them to restart the app after updating their profile, or configure the variable in the tool's own environment settings if available
 
 ## Plan Limits & Quotas
 
