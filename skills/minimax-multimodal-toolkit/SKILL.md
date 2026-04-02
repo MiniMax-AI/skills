@@ -1,22 +1,32 @@
 ---
 name: minimax-multimodal-toolkit
-description: >
-  MiniMax multimodal model skill — use MiniMax Multi-Modal models for speech, music, video, and image.
-  Create voice, music, video, and images with MiniMax AI: TTS (text-to-speech, voice cloning, voice design,
-  multi-segment), music (songs, instrumentals), video (text-to-video, image-to-video, start-end frame,
-  subject reference, templates, long-form multi-scene), image (text-to-image, image-to-image with character
-  reference), and media processing (convert, concat, trim, extract).
-  Use when the user mentions MiniMax, multimodal generation, or wants speech/music/video/image AI,
-  MiniMax APIs, or FFmpeg workflows alongside MiniMax outputs.
-license: MIT
-metadata:
-  version: "1.0"
-  category: media-generation
+description: MiniMax multimodal model skill — use MiniMax  Multi-Modal models for speech, music, video, and image. Create voice, music, video, and images with MiniMax AI: TTS (text-to-speech, voice cloning, voice design, multi-segment), music (songs, instrumentals), video (text-to-video, image-to-video, start-end frame, subject reference, templates, long-form multi-scene), image (text-to-image, image-to-image with character reference), and media processing (convert, concat, trim, extract). Use when the user mentions MiniMax, multimodal generation, or wants speech/music/video/image AI, MiniMax APIs, or FFmpeg workflows alongside MiniMax outputs.
 ---
 
 # MiniMax Multi-Modal Toolkit
 
 Generate voice, music, video, and image content via MiniMax APIs — the unified entry for **MiniMax multimodal** use cases (audio + music + video + image). Includes voice cloning & voice design for custom voices, image generation with character reference, and FFmpeg-based media tools for audio/video format conversion, concatenation, trimming, and extraction.
+
+## Default Models
+
+When the user does not specify a model, always use the default model for each capability. Do NOT ask the user to choose a model unless they explicitly mention model selection.
+
+| Capability | Default Model | Notes |
+|------------|---------------|-------|
+| TTS | `speech-2.8-hd` | Auto emotion matching, recommended |
+| Music | `music-2.5` | Only available model |
+| Image | `image-01` | Only available model |
+| Video | `MiniMax-Hailuo-2.3` | 6s + 768P, supports all modes (t2v/i2v/sef/ref) |
+
+Only switch to an alternative model (e.g. `speech-2.8-turbo`, `MiniMax-Hailuo-2.3-Fast`) when the user explicitly requests faster generation or names a specific model.
+
+### Error Handling
+
+When a default model call fails:
+
+1. **Always show the user the exact error message** returned by the API — do not silently retry or hide errors.
+2. **Video generation quota exhausted**: If `MiniMax-Hailuo-2.3` returns a quota/limit error (e.g. `insufficient_quota`, `rate_limit`, `balance`), automatically retry with `MiniMax-Hailuo-2.3-Fast` and inform the user: "MiniMax-Hailuo-2.3 quota exhausted — automatically retrying with MiniMax-Hailuo-2.3-Fast."
+3. **Other capabilities** (TTS, Music, Image): Show the error to the user and wait for their instructions. Do not auto-switch models.
 
 ## Output Directory
 
@@ -43,8 +53,8 @@ MiniMax provides two service endpoints for different regions. Set `MINIMAX_API_H
 
 | Region | Platform URL | API Host Value |
 |--------|-------------|----------------|
-| China Mainland（中国大陆） | https://platform.minimaxi.com | `https://api.minimaxi.com` |
-| Global（全球） | https://platform.minimax.io | `https://api.minimax.io` |
+| China Mainland | https://platform.minimaxi.com | `https://api.minimaxi.com` |
+| Global | https://platform.minimax.io | `https://api.minimax.io` |
 
 ```bash
 # China Mainland
@@ -75,37 +85,6 @@ The key starts with `sk-api-` or `sk-cp-`, obtainable from https://platform.mini
 Before running any script, check if `MINIMAX_API_KEY` is set in the environment. If it is NOT configured:
 1. Ask the user to provide their MiniMax API key
 2. Instruct and help user to set it via `export MINIMAX_API_KEY="sk-..."` in their terminal or add it to their shell profile (`~/.zshrc` / `~/.bashrc`) for persistence
-
-## Plan Limits & Quotas
-
-**IMPORTANT — Always respect the user's plan limits before generating content.** If the user's quota is exhausted or insufficient, warn them before proceeding.
-
-### Standard Plans
-
-| Capability | Starter | Plus | Max |
-|---|---|---|---|
-| M2.7 (chat) | 600 req/5h | 1,500 req/5h | 4,500 req/5h |
-| Speech 2.8 | — | 4,000 chars/day | 11,000 chars/day |
-| image-01 | — | 50 images/day | 120 images/day |
-| Hailuo-2.3-Fast 768P 6s | — | — | 2 videos/day |
-| Hailuo-2.3 768P 6s | — | — | 2 videos/day |
-| Music-2.5 | — | — | 4 songs/day (≤5 min each) |
-
-### High-Speed Plans
-
-| Capability | Plus-HS | Max-HS | Ultra-HS |
-|---|---|---|---|
-| M2.7-highspeed (chat) | 1,500 req/5h | 4,500 req/5h | 30,000 req/5h |
-| Speech 2.8 | 9,000 chars/day | 19,000 chars/day | 50,000 chars/day |
-| image-01 | 100 images/day | 200 images/day | 800 images/day |
-| Hailuo-2.3-Fast 768P 6s | — | 3 videos/day | 5 videos/day |
-| Hailuo-2.3 768P 6s | — | 3 videos/day | 5 videos/day |
-| Music-2.5 | — | 7 songs/day (≤5 min each) | 15 songs/day (≤5 min each) |
-
-**Key quota constraints:**
-- **Video resolution: 768P only** — 1080P is not available on any plan
-- **Video duration: 6s** — all plan quotas are counted in 6-second units
-- **Video quota is very limited** (2–5/day depending on plan) — always confirm with the user before generating video
 
 ## Key Capabilities
 
@@ -190,8 +169,6 @@ bash scripts/tts/generate_voice.sh convert input.wav -o minimax-output/output.mp
 |-------|-------|
 | speech-2.8-hd | Recommended, auto emotion matching |
 | speech-2.8-turbo | Faster variant |
-| speech-2.6-hd | Previous gen, manual emotion |
-| speech-2.6-turbo | Previous gen, faster |
 
 ### segments.json Format
 
@@ -204,7 +181,7 @@ Default crossfade between segments: **200ms** (`--crossfade 200`).
 ]
 ```
 
-Leave `emotion` empty for speech-2.8 models (auto-matched from text).
+Leave `emotion` empty (auto-matched from text by speech-2.8 models).
 
 ### IMPORTANT: Multi-Segment Script Generation Rules (Audiobooks, Podcasts, etc.)
 
@@ -303,24 +280,24 @@ Do NOT always default to `1:1`. Analyze the user's request and choose the most a
 
 | User intent / context | Recommended ratio | Resolution |
 |-----------------------|-------------------|------------|
-| 头像、图标、社交媒体头像、avatar、icon、profile pic | `1:1` | 1024×1024 |
-| 风景、横幅、桌面壁纸、landscape、banner、desktop wallpaper | `16:9` | 1280×720 |
-| 传统照片、经典比例、classic photo | `4:3` | 1152×864 |
-| 摄影作品、杂志封面、photography、magazine | `3:2` | 1248×832 |
-| 人像竖图、海报、portrait photo、poster | `2:3` | 832×1248 |
-| 竖版海报、书籍封面、tall poster、book cover | `3:4` | 864×1152 |
-| 手机壁纸、社交媒体故事、phone wallpaper、story、reel | `9:16` | 720×1280 |
-| 超宽全景、电影画幅、panoramic、cinematic ultrawide | `21:9` | 1344×576 |
-| 未指定特定需求 / ambiguous | `1:1` | 1024×1024 |
+| Avatar, icon, profile pic, social media avatar | `1:1` | 1024×1024 |
+| Landscape, banner, desktop wallpaper | `16:9` | 1280×720 |
+| Classic photo, traditional ratio | `4:3` | 1152×864 |
+| Photography, magazine cover | `3:2` | 1248×832 |
+| Portrait photo, poster | `2:3` | 832×1248 |
+| Tall poster, book cover | `3:4` | 864×1152 |
+| Phone wallpaper, social story, reel | `9:16` | 720×1280 |
+| Ultra-wide panoramic, cinematic ultrawide | `21:9` | 1344×576 |
+| Ambiguous / unspecified | `1:1` | 1024×1024 |
 
 ### IMPORTANT: Image Count — When to generate multiple images
 
 | User intent | Count (`-n`) |
 |-------------|--------------|
 | Default / single image request | `1` (default) |
-| 用户说"几张"、"多张"、"一些" / "a few", "several" | `3` |
-| 用户说"多种方案"、"备选" / "variations", "options" | `3`–`4` |
-| 用户明确指定数量 | Use the specified number (1–9) |
+| "a few", "several", "some" | `3` |
+| "variations", "options", "alternatives" | `3`–`4` |
+| User specifies an exact number | Use the specified number (1–9) |
 
 ### Text-to-Image Examples
 
@@ -416,30 +393,33 @@ bash scripts/image/generate_image.sh \
 | User intent | Script to use |
 |-------------|---------------|
 | Default / no special request | `scripts/video/generate_video.sh` (single segment, **6s, 768P**) |
-| User explicitly asks for "long video", "multi-scene", "story", or duration > 10s | `scripts/video/generate_long_video.sh` (multi-segment) |
+| User explicitly asks for "long video", "multi-scene", "story", or duration > 6s | `scripts/video/generate_long_video.sh` (multi-segment) |
 
-**Default behavior:** Always use single-segment `generate_video.sh` with **duration 6s and resolution 768P** unless the user explicitly asks for a long video or multi-scene video. Do NOT automatically split into multiple segments — a single 6s video is the standard output. Only use `generate_long_video.sh` when the user clearly needs multi-scene or longer content.
+**Default behavior:** Always use single-segment `generate_video.sh` with **duration 6s and resolution 768P** unless the user explicitly asks for a long video, multi-scene video, or specifies a total duration exceeding 6 seconds. Do NOT automatically split into multiple segments — a single 6s video is the standard output. Only use `generate_long_video.sh` when the user clearly needs multi-scene or longer content.
 
 Entry point (single video): `scripts/video/generate_video.sh`
 Entry point (long/multi-scene): `scripts/video/generate_long_video.sh`
 
 ### Video Model Constraints (MUST follow)
 
-**Supported resolutions and durations by model:**
+**Duration limits by model and resolution:**
 
-| Model | Resolution | Duration |
-|-------|-----------|----------|
-| MiniMax-Hailuo-2.3 | 768P only | 6s or 10s |
-| MiniMax-Hailuo-2.3-Fast | 768P only | 6s or 10s |
-| MiniMax-Hailuo-02 | 512P, 768P (default) | 6s or 10s |
-| T2V-01 / T2V-01-Director | 720P | 6s only |
-| I2V-01 / I2V-01-Director / I2V-01-live | 720P | 6s only |
-| S2V-01 (ref) | 720P | 6s only |
+| Model | 768P |
+|-------|------|
+| MiniMax-Hailuo-2.3-Fast | 6s |
+| MiniMax-Hailuo-2.3 | 6s |
+
+**Resolution options by model and duration:**
+
+| Model | 6s |
+|-------|-----|
+| MiniMax-Hailuo-2.3-Fast | 768P |
+| MiniMax-Hailuo-2.3 | 768P |
 
 **Key rules:**
-- **Default: 6s + 768P** — plan quotas are counted in 6-second units; use 6s unless user explicitly requests 10s
-- **1080P is NOT supported** on any plan — always use 768P for Hailuo-2.3/2.3-Fast
-- Older models (T2V-01, I2V-01, S2V-01) only support 6s at 720P
+- **Default: `MiniMax-Hailuo-2.3` + 6s + 768P**
+- `MiniMax-Hailuo-2.3-Fast` only supports `6s + 768P`
+- `MiniMax-Hailuo-2.3` only supports `6s + 768P`
 
 ### IMPORTANT: Prompt Optimization (MUST follow before generating any video)
 
@@ -449,17 +429,17 @@ Before calling any video generation script, you MUST optimize the user's prompt 
 
 1. **Apply the Professional Formula**: `Main subject + Scene + Movement + Camera motion + Aesthetic atmosphere`
    - BAD: `"A puppy in a park"`
-   - GOOD: `"A golden retriever puppy runs toward the camera on a sun-dappled grass path in a park, [跟随] smooth tracking shot, warm golden hour lighting, shallow depth of field, joyful atmosphere"`
+   - GOOD: `"A golden retriever puppy runs toward the camera on a sun-dappled grass path in a park, [Tracking shot] smooth tracking, warm golden hour lighting, shallow depth of field, joyful atmosphere"`
 
-2. **Add camera instructions** using `[指令]` syntax: `[推进]`, `[拉远]`, `[跟随]`, `[固定]`, `[左摇]`, etc.
+2. **Add camera instructions** using `[command]` syntax: `[Push in]`, `[Pull out]`, `[Tracking shot]`, `[Static shot]`, `[Pan left]`, etc.
 
 3. **Include aesthetic details**: lighting (golden hour, dramatic side lighting), color grading (warm tones, cinematic), texture (dust particles, rain droplets), atmosphere (intimate, epic, peaceful)
 
-4. **Keep to 1-2 key actions** for 6-10 second videos — do not overcrowd with events
+4. **Keep to 1-2 key actions** for 6-second videos — do not overcrowd with events
 
 5. **For i2v mode** (image-to-video): Focus prompt on **movement and change only**, since the image already establishes the visual. Do NOT re-describe what's in the image.
    - BAD: `"A lake with mountains"` (just repeating the image)
-   - GOOD: `"Gentle ripples spread across the water surface, a breeze rustles the distant trees, [固定] fixed camera, soft morning light, peaceful and serene"`
+   - GOOD: `"Gentle ripples spread across the water surface, a breeze rustles the distant trees, [Static shot] fixed camera, soft morning light, peaceful and serene"`
 
 6. **For multi-segment long videos**: Each segment's prompt must be self-contained and optimized individually. The i2v segments (segment 2+) should describe motion/change relative to the previous segment's ending frame.
 
@@ -467,28 +447,34 @@ Before calling any video generation script, you MUST optimize the user's prompt 
 # Text-to-video (default: 6s, 768P)
 bash scripts/video/generate_video.sh \
   --mode t2v \
-  --prompt "A golden retriever puppy bounds toward the camera on a sunlit grass path, [跟随] tracking shot, warm golden hour, shallow depth of field, joyful" \
+  --prompt "A golden retriever puppy bounds toward the camera on a sunlit grass path, [Tracking shot] warm golden hour, shallow depth of field, joyful" \
   --output minimax-output/puppy.mp4
+
+# Text-to-video with MiniMax-Hailuo-2.3-Fast
+bash scripts/video/generate_video.sh \
+  --mode t2v \
+  --prompt "A golden retriever puppy bounds toward the camera" \
+  --model MiniMax-Hailuo-2.3-Fast \
+  --output minimax-output/puppy_fast.mp4
 
 # Image-to-video (prompt focuses on MOTION, not image content)
 bash scripts/video/generate_video.sh \
   --mode i2v \
-  --prompt "The petals begin to sway gently in the breeze, soft light shifts across the surface, [固定] fixed framing, dreamy pastel tones" \
+  --prompt "The petals begin to sway gently in the breeze, soft light shifts across the surface, [Static shot] dreamy pastel tones" \
   --first-frame photo.jpg \
   --output minimax-output/animated.mp4
 
-# Start-end frame interpolation (sef mode uses MiniMax-Hailuo-02)
+# Start-end frame interpolation (sef mode)
 bash scripts/video/generate_video.sh \
   --mode sef \
   --first-frame start.jpg --last-frame end.jpg \
   --output minimax-output/transition.mp4
 
-# Subject reference (face consistency, ref mode uses S2V-01, 6s only)
+# Subject reference (face consistency)
 bash scripts/video/generate_video.sh \
   --mode ref \
-  --prompt "A young woman in a white dress walks slowly through a sunlit garden, [跟随] smooth tracking, warm natural lighting, cinematic depth of field" \
+  --prompt "A young woman in a white dress walks slowly through a sunlit garden, [Tracking shot] warm natural lighting, cinematic depth of field" \
   --subject-image face.jpg \
-  --duration 6 \
   --output minimax-output/person.mp4
 ```
 
@@ -513,17 +499,15 @@ Multi-scene long videos chain segments together: the first segment generates via
 # Example: 3-segment story with optimized per-segment prompts (default: 6s/segment, 768P)
 bash scripts/video/generate_long_video.sh \
   --scenes \
-    "A lone astronaut stands on a red desert planet surface, wind blowing dust particles, [推进] slow push in toward the visor, dramatic rim lighting, cinematic sci-fi atmosphere" \
-    "The astronaut turns and begins walking toward a distant glowing structure on the horizon, dust swirling around boots, [跟随] tracking from behind, vast desolate landscape, golden light from the structure" \
-    "The astronaut reaches the structure entrance, a massive doorway pulses with blue energy, [推进] slow push in toward the doorway, light reflects off the visor, awe-inspiring epic scale" \
+    "A lone astronaut stands on a red desert planet surface, wind blowing dust particles, [Push in] slow push in toward the visor, dramatic rim lighting, cinematic sci-fi atmosphere" \
+    "The astronaut turns and begins walking toward a distant glowing structure on the horizon, dust swirling around boots, [Tracking shot] vast desolate landscape, golden light from the structure" \
+    "The astronaut reaches the structure entrance, a massive doorway pulses with blue energy, [Push in] slow push in toward the doorway, light reflects off the visor, awe-inspiring epic scale" \
   --music-prompt "cinematic orchestral ambient, slow build, sci-fi atmosphere" \
   --output minimax-output/long_video.mp4
 
 # With custom settings
 bash scripts/video/generate_long_video.sh \
   --scenes "Scene 1 prompt" "Scene 2 prompt" \
-  --segment-duration 6 \
-  --resolution 768P \
   --crossfade 0.5 \
   --music-prompt "calm ambient background music" \
   --output minimax-output/long_video.mp4
@@ -553,10 +537,10 @@ bash scripts/video/generate_template_video.sh \
 
 | Mode | Default Model | Default Duration | Default Resolution | Notes |
 |------|--------------|-----------------|-------------------|-------|
-| t2v | MiniMax-Hailuo-2.3 | 6s | 768P | Latest text-to-video |
-| i2v | MiniMax-Hailuo-2.3 | 6s | 768P | Latest image-to-video |
-| sef | MiniMax-Hailuo-02 | 6s | 768P | Start-end frame |
-| ref | S2V-01 | 6s | 720P | Subject reference, 6s only |
+| t2v | MiniMax-Hailuo-2.3 | 6s | 768P | Default supported combo |
+| i2v | MiniMax-Hailuo-2.3 | 6s | 768P | Default supported combo |
+| sef | MiniMax-Hailuo-2.3 | 6s | 768P | Start-end frame mode |
+| ref | MiniMax-Hailuo-2.3 | 6s | 768P | Subject reference mode |
 
 ## Media Tools (Audio/Video Processing)
 

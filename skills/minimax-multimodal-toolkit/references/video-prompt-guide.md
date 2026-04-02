@@ -14,9 +14,9 @@ Examples:
 **Main subject + Scene + Movement + Camera motion + Aesthetic atmosphere**
 
 Examples:
-- "A couple sits on a park bench, warm golden hour lighting, [固定] framing, intimate and romantic atmosphere"
-- "A young man in a suit eats noodles at a street stall, [拉远] revealing the busy night market, warm tones, cinematic"
-- "A dancer performs contemporary dance in an empty studio, [跟随] smooth tracking, dramatic side lighting"
+- "A couple sits on a park bench, warm golden hour lighting, [Static shot] intimate and romantic atmosphere"
+- "A young man in a suit eats noodles at a street stall, [Pull out] revealing the busy night market, warm tones, cinematic"
+- "A dancer performs contemporary dance in an empty studio, [Tracking shot] smooth tracking, dramatic side lighting"
 
 ---
 
@@ -32,13 +32,13 @@ Examples:
 ## Camera Instructions Usage
 
 ### Simultaneous Camera Movement
-Place multiple instructions in one bracket:
-- `[左摇,上升]` — pan left while rising
-- `[推进,下摇]` — push in while tilting down
+Place multiple instructions in one bracket (max 3):
+- `[Pan left,Pedestal up]` — pan left while rising
+- `[Push in,Tilt down]` — push in while tilting down
 
 ### Sequential Camera Movement
 Place instructions at different points in the prompt:
-- "The camera starts with [推进] toward the face, then [拉远] to reveal the full scene"
+- "The camera starts with [Push in] toward the face, then [Pull out] to reveal the full scene"
 
 ---
 
@@ -75,8 +75,8 @@ Place instructions at different points in the prompt:
 ## Image-to-Video Prompt Tips
 
 Focus on **movement and change** since the image establishes the visual:
-- Image of still lake → "Gentle ripples spread across the water surface, a breeze rustles the trees, [固定] fixed camera, peaceful"
-- Image of portrait → "The person slowly smiles and turns their head, natural blinking, [推进] subtle push in, warm lighting"
+- Image of still lake → "Gentle ripples spread across the water surface, a breeze rustles the trees, [Static shot] peaceful"
+- Image of portrait → "The person slowly smiles and turns their head, natural blinking, [Push in] subtle push in, warm lighting"
 
 ---
 
@@ -85,7 +85,7 @@ Focus on **movement and change** since the image establishes the visual:
 1. **Subject**: Appearance, clothing, color, expression, posture
 2. **Action**: 1-2 key temporal actions ("first...then...")
 3. **Scene**: Setting with foreground + background + atmosphere
-4. **Camera**: `[运镜指令]` for precise control
+4. **Camera**: `[Camera command]` for precise control (e.g. `[Push in]`, `[Tracking shot]`, `[Pan left]`)
 5. **Aesthetic**: Lighting, color, texture, cinematic quality
 
 ## Common Mistakes

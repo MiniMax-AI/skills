@@ -45,6 +45,28 @@ check_api_key() {
   fi
 }
 
+validate_model_constraints() {
+  local model="$1" duration="$2" resolution="$3"
+  case "$model" in
+    MiniMax-Hailuo-2.3-Fast)
+      if [[ "$duration" != "6" || "$resolution" != "768P" ]]; then
+        echo "Error: MiniMax-Hailuo-2.3-Fast only supports duration=6 and resolution=768P." >&2
+        exit 1
+      fi
+      ;;
+    MiniMax-Hailuo-2.3)
+      if [[ "$duration" != "6" || "$resolution" != "768P" ]]; then
+        echo "Error: MiniMax-Hailuo-2.3 only supports duration=6 and resolution=768P." >&2
+        exit 1
+      fi
+      ;;
+    *)
+      echo "Error: Unsupported model '$model'. Supported models: MiniMax-Hailuo-2.3-Fast, MiniMax-Hailuo-2.3." >&2
+      exit 1
+      ;;
+  esac
+}
+
 image_to_data_url() {
   local path="$1"
   [[ -f "$path" ]] || { echo "Error: Image not found: $path" >&2; exit 1; }
@@ -192,7 +214,7 @@ main() {
   load_env
   check_api_key
 
-  local mode="" prompt="" model="" duration=10 resolution="768P"
+  local mode="" prompt="" model="" duration=6 resolution="768P"
   local first_frame="" last_frame="" subject_image=""
   local prompt_optimizer="" fast_pretreatment="" callback_url="" aigc_watermark=""
   local output=""
@@ -228,7 +250,9 @@ Modes:
 Options:
   --mode MODE           Generation mode: t2v, i2v, sef, ref (required)
   --prompt TEXT          Text prompt describing the video
-  --model MODEL         Model name (default: T2V-01)
+  --model MODEL         Model name (default: MiniMax-Hailuo-2.3)
+  --duration SECONDS    Duration in seconds (must match model constraints)
+  --resolution RES      Resolution: 512P or 768P (must match model constraints)
   --first-frame FILE    First frame image (local file or URL)
   --last-frame FILE     Last frame image (local file or URL)
   --subject-image FILE  Subject reference image (local file or URL)
@@ -255,13 +279,10 @@ USAGE
 
   # Default model per mode
   if [[ -z "$model" ]]; then
-    case "$mode" in
-      t2v) model="MiniMax-Hailuo-2.3" ;;
-      i2v) model="MiniMax-Hailuo-2.3" ;;
-      sef) model="MiniMax-Hailuo-02" ;;
-      ref) model="S2V-01" ;;
-    esac
+    model="MiniMax-Hailuo-2.3"
   fi
+
+  validate_model_constraints "$model" "$duration" "$resolution"
 
   # Build payload
   local payload
