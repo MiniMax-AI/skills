@@ -521,8 +521,6 @@ voice = VoiceSetting(
 | `disgusted` | Repulsed | All |
 | `surprised` | Astonished | All |
 | `calm` | Neutral tone | All |
-| `fluent` | Natural, lively | speech-2.6 only |
-| `whisper` | Soft, gentle | speech-2.6 only |
 
 ---
 

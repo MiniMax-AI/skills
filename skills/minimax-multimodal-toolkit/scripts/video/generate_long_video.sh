@@ -54,6 +54,28 @@ check_api_key() {
   fi
 }
 
+validate_model_constraints() {
+  local model="$1" duration="$2" resolution="$3"
+  case "$model" in
+    MiniMax-Hailuo-2.3-Fast)
+      if [[ "$duration" != "6" || "$resolution" != "768P" ]]; then
+        echo "Error: MiniMax-Hailuo-2.3-Fast only supports duration=6 and resolution=768P." >&2
+        exit 1
+      fi
+      ;;
+    MiniMax-Hailuo-2.3)
+      if [[ "$duration" != "6" || "$resolution" != "768P" ]]; then
+        echo "Error: MiniMax-Hailuo-2.3 only supports duration=6 and resolution=768P." >&2
+        exit 1
+      fi
+      ;;
+    *)
+      echo "Error: Unsupported model '$model'. Supported models: MiniMax-Hailuo-2.3-Fast, MiniMax-Hailuo-2.3." >&2
+      exit 1
+      ;;
+  esac
+}
+
 image_to_data_url() {
   local path="$1"
   [[ -f "$path" ]] || { echo "Error: Image not found: $path" >&2; exit 1; }
@@ -300,7 +322,7 @@ main() {
   load_env
   check_api_key
 
-  local scenes=() model="" segment_duration=10 resolution="768P"
+  local scenes=() model="" segment_duration=6 resolution="768P"
   local first_frame="" subject_reference="" crossfade=0.5
   local music_prompt="" bgm_volume=0.3 fade_in=0 fade_out=0
   local output=""
@@ -334,8 +356,8 @@ Usage:
 Options:
   --scenes TEXT...          Scene prompts (2+ required)
   --model MODEL             Model name (default: auto)
-  --segment-duration SECS   Duration per segment (default: 10)
-  --resolution RES          Resolution: 768P, 1080P (default: 768P)
+  --segment-duration SECS   Duration per segment (default: 6)
+  --resolution RES          Resolution: 512P, 768P (default: 768P)
   --first-frame FILE        First frame for scene 1 (local file or URL)
   --subject-reference FILE  Subject reference image
   --crossfade SECS          Crossfade duration between scenes (default: 0.5)
@@ -361,6 +383,11 @@ USAGE
   if [[ -z "$output" ]]; then
     echo "Error: --output / -o is required" >&2; exit 1
   fi
+
+  if [[ -z "$model" ]]; then
+    model="MiniMax-Hailuo-2.3"
+  fi
+  validate_model_constraints "$model" "$segment_duration" "$resolution"
 
   local output_dir
   output_dir="$(dirname "$output")"
@@ -389,12 +416,6 @@ USAGE
 
     # Determine model
     local seg_model="$model"
-    if [[ -z "$seg_model" ]]; then
-      case "$seg_mode" in
-        t2v|i2v) seg_model="MiniMax-Hailuo-2.3" ;;
-        ref) seg_model="S2V-01" ;;
-      esac
-    fi
 
     # Build payload
     local payload

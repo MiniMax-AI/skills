@@ -105,7 +105,7 @@ python scripts/tts/generate_voice.py generate segments.json -o output.mp3 --cros
 - **Endpoint**: `POST /v1/t2a_v2`
 - **Base URL**: `https://api.minimaxi.com`
 - **Auth**: `Authorization: Bearer {MINIMAX_API_KEY}`
-- **Models**: speech-2.8-hd (recommended), speech-2.8-turbo, speech-2.6-hd, speech-2.6-turbo, speech-02-hd, speech-02-turbo, speech-01-hd, speech-01-turbo
+- **Models**: speech-2.8-hd (recommended), speech-2.8-turbo
 - **Text limit**: 10,000 characters per request
 - **Pause marker**: `<#x#>` where x is seconds (0.01–99.99)
 - **Interjection tags** (speech-2.8 only): `(laughs)`, `(chuckle)`, `(coughs)`, `(sighs)`, `(breath)`, etc.

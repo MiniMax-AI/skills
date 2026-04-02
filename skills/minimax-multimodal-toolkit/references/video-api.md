@@ -20,31 +20,24 @@
 ### Text-to-Video (T2V) Models
 | Model | Resolution | Duration | Notes |
 |-------|-----------|----------|-------|
-| MiniMax-Hailuo-2.3 | 768P (default), 1080P | 6s (1080P), 6/10s (768P) | Recommended, latest |
-| MiniMax-Hailuo-2.3-Fast | 768P (default), 1080P | 6s (1080P), 6/10s (768P) | Fast variant |
-| MiniMax-Hailuo-02 | 512P, 768P (default), 1080P | 6s (1080P), 6/10s (512P/768P) | Previous gen |
-| T2V-01-Director | 720P | 6s | Director control |
-| T2V-01 | 720P | 6s | Base model |
+| MiniMax-Hailuo-2.3-Fast | 768P | 6s | Fixed combo: 6s + 768P |
+| MiniMax-Hailuo-2.3 | 768P | 6s | Fixed combo: 6s + 768P |
 
 ### Image-to-Video (I2V) Models
 | Model | Resolution | Duration | Notes |
 |-------|-----------|----------|-------|
-| MiniMax-Hailuo-2.3 | 768P, 1080P | 6s | Recommended |
-| MiniMax-Hailuo-2.3-Fast | 768P, 1080P | 6s | Fast variant |
-| MiniMax-Hailuo-02 | 512P, 768P, 1080P | 6/10s | Previous gen |
-| I2V-01-Director | 720P | 6s | Director control |
-| I2V-01-live | 720P | 6s | Live photo style |
-| I2V-01 | 720P | 6s | Base model |
+| MiniMax-Hailuo-2.3-Fast | 768P | 6s | Fixed combo: 6s + 768P |
+| MiniMax-Hailuo-2.3 | 768P | 6s | Fixed combo: 6s + 768P |
 
 ### Start-End Frame Model
 | Model | Notes |
 |-------|-------|
-| MiniMax-Hailuo-02 | Only model supporting start-end frame |
+| MiniMax-Hailuo-2.3 | Supports start-end frame mode |
 
 ### Subject Reference Model
 | Model | Notes |
 |-------|-------|
-| S2V-01 | Face consistency across video |
+| MiniMax-Hailuo-2.3 | Use supported duration+resolution combos |
 
 ---
 
@@ -56,7 +49,7 @@
 | model | string | Yes | - | Model name |
 | prompt | string | Depends | - | Video description, max 2000 chars |
 | duration | int | No | 6 | Video length in seconds |
-| resolution | string | No | 768P/720P | Video resolution |
+| resolution | string | No | 768P | Video resolution |
 | prompt_optimizer | bool | No | true | Auto-optimize prompt |
 | fast_pretreatment | bool | No | false | Shorten optimizer duration |
 | callback_url | string | No | - | Webhook URL |
@@ -89,19 +82,21 @@ Each object has `type` and `image` (array of image URLs):
 
 ## Camera Instructions
 
-Supported in `[指令]` syntax for Hailuo-2.3, Hailuo-02, and Director models:
+Supported in `[command]` syntax for Hailuo-2.3 models:
 
 | Category | Instructions |
 |----------|-------------|
-| Pan | `[左移]`, `[右移]` |
-| Rotation | `[左摇]`, `[右摇]` |
-| Push/Pull | `[推进]`, `[拉远]` |
-| Elevation | `[上升]`, `[下降]` |
-| Tilt | `[上摇]`, `[下摇]` |
-| Zoom | `[变焦推近]`, `[变焦拉远]` |
-| Other | `[晃动]`, `[跟随]`, `[固定]` |
+| Truck (lateral) | `[Truck left]`, `[Truck right]` |
+| Pan (horizontal rotation) | `[Pan left]`, `[Pan right]` |
+| Push/Pull (depth) | `[Push in]`, `[Pull out]` |
+| Pedestal (vertical) | `[Pedestal up]`, `[Pedestal down]` |
+| Tilt (vertical rotation) | `[Tilt up]`, `[Tilt down]` |
+| Zoom (focal length) | `[Zoom in]`, `[Zoom out]` |
+| Shake | `[Shake]` |
+| Tracking | `[Tracking shot]` |
+| Static | `[Static shot]` |
 
-Combine for simultaneous: `[左摇,上升]` (max 3). Sequential: `...[推进], then ...[拉远]`
+Combine for simultaneous: `[Pan left,Pedestal up]` (max 3). Sequential: `...[Push in], then ...[Pull out]`
 
 ---
 

@@ -44,7 +44,7 @@ image_to_data_url() {
   local mime
   mime="$(file -b --mime-type "$path" 2>/dev/null)" || mime="image/jpeg"
   local b64
-  b64="$(base64 -w 0 < "$path")"
+  b64="$(base64 < "$path")"
   echo "data:${mime};base64,${b64}"
 }
 
@@ -55,78 +55,6 @@ resolve_image() {
     http://*|https://*|data:*) echo "$input" ;;
     *) image_to_data_url "$input" ;;
   esac
-}
-
-# ============================================================================
-# Payload builder — avoids command-line length limits on Windows
-# Uses temp files for jq when the payload may contain large base64 data.
-# ============================================================================
-
-# Build JSON payload, writing large fields (base64 image data) to temp files
-# to avoid Windows cmd.exe argument-length limits (~32KB).
-build_payload() {
-  local model="$1" prompt="$2" response_format="$3" n="$4"
-  local prompt_optimizer="$5" aigc_watermark="$6"
-  local aspect_ratio="$7" width="$8" height="$9" seed="${10:-}"
-  local ref_image="${11:-}"
-
-  # Start with base payload using temp file to avoid long command lines
-  local base_tmp
-  base_tmp="$(mktemp)"
-  trap "rm -f '$base_tmp'" EXIT INT TERM HUP
-
-  jq -n \
-    --arg model "$model" \
-    --arg prompt "$prompt" \
-    --arg rf "$response_format" \
-    --argjson n "$n" \
-    --argjson po "$prompt_optimizer" \
-    --argjson aw "$aigc_watermark" \
-    '{model: $model, prompt: $prompt, response_format: $rf, n: $n, prompt_optimizer: $po, aigc_watermark: $aw}' \
-    > "$base_tmp"
-
-  # Add optional fields, each via temp file to stay within Windows arg limits
-  if [[ -n "$aspect_ratio" ]]; then
-    local tmp2; tmp2="$(mktemp)"; trap "rm -f '$base_tmp' '$tmp2'" EXIT INT TERM HUP
-    jq --arg ar "$aspect_ratio" '. + {aspect_ratio: $ar}' "$base_tmp" > "$tmp2"
-    mv "$tmp2" "$base_tmp"
-  fi
-  if [[ -n "$width" ]]; then
-    local tmp2; tmp2="$(mktemp)"; trap "rm -f '$base_tmp' '$tmp2'" EXIT INT TERM HUP
-    jq --argjson w "$width" '. + {width: $w}' "$base_tmp" > "$tmp2"
-    mv "$tmp2" "$base_tmp"
-  fi
-  if [[ -n "$height" ]]; then
-    local tmp2; tmp2="$(mktemp)"; trap "rm -f '$base_tmp' '$tmp2'" EXIT INT TERM HUP
-    jq --argjson h "$height" '. + {height: $h}' "$base_tmp" > "$tmp2"
-    mv "$tmp2" "$base_tmp"
-  fi
-  if [[ -n "$seed" ]]; then
-    local tmp2; tmp2="$(mktemp)"; trap "rm -f '$base_tmp' '$tmp2'" EXIT INT TERM HUP
-    jq --argjson s "$seed" '. + {seed: $s}' "$base_tmp" > "$tmp2"
-    mv "$tmp2" "$base_tmp"
-  fi
-
-  # Subject reference (i2i mode) — build via temp file to avoid huge command-line args
-  if [[ -n "$ref_image" ]]; then
-    local img_url
-    img_url="$(resolve_image "$ref_image")"
-    # Create temp files and set traps separately to avoid set -u issues
-    local ref_tmp; ref_tmp="$(mktemp)"
-    trap "rm -f '$base_tmp' '$ref_tmp'" EXIT INT TERM HUP
-    local url_tmp; url_tmp="$(mktemp)"; trap "rm -f '$base_tmp' '$ref_tmp' '$url_tmp'" EXIT INT TERM HUP
-    # Write URL to temp file to avoid long-argument issues, then build JSON
-    echo -n "$img_url" > "$url_tmp"
-    # Use jq -s to collect all lines (handles base64 with embedded newlines), take first element
-    jq -Rs 'split("\n")[0] | {type: "character", image_file: .}' "$url_tmp" > "$ref_tmp"
-    local tmp2; tmp2="$(mktemp)"; trap "rm -f '$base_tmp' '$ref_tmp' '$url_tmp' '$tmp2'" EXIT INT TERM HUP
-    jq --slurpfile ref "$ref_tmp" '. + {subject_reference: $ref}' "$base_tmp" > "$tmp2"
-    mv "$tmp2" "$base_tmp"
-  fi
-
-  cat "$base_tmp"
-  rm -f "$base_tmp"
-  trap - EXIT INT TERM HUP
 }
 
 # ============================================================================
@@ -179,7 +107,7 @@ Options:
   -n, --count N         Number of images to generate (1-9, default: 1)
   --seed N              Random seed for reproducibility
   --prompt-optimizer    Enable automatic prompt optimization
-  --aigc-watermark     Add AIGC watermark to generated images
+  --aigc-watermark      Add AIGC watermark to generated images
   --ref-image FILE      Character reference image (local file or URL, i2i mode)
   --response-format FMT Response format: url (default), base64
   --no-download         Don't download, just print URL(s)
@@ -216,13 +144,31 @@ USAGE
     echo "Error: -n must be between 1 and 9" >&2; exit 1
   fi
 
-  # Build payload using temp-file method (avoids Windows cmd.exe arg-length limit)
+  # Build payload
   local payload
-  payload=$(build_payload \
-    "$model" "$prompt" "$response_format" "$n" \
-    "$prompt_optimizer" "$aigc_watermark" \
-    "$aspect_ratio" "$width" "$height" "$seed" \
-    "$ref_image")
+  payload=$(jq -n \
+    --arg model "$model" \
+    --arg prompt "$prompt" \
+    --arg rf "$response_format" \
+    --argjson n "$n" \
+    --argjson po "$prompt_optimizer" \
+    --argjson aw "$aigc_watermark" \
+    '{model: $model, prompt: $prompt, response_format: $rf, n: $n, prompt_optimizer: $po, aigc_watermark: $aw}')
+
+  [[ -n "$aspect_ratio" ]] && payload=$(echo "$payload" | jq --arg ar "$aspect_ratio" '. + {aspect_ratio: $ar}')
+  [[ -n "$width" ]] && payload=$(echo "$payload" | jq --argjson w "$width" '. + {width: $w}')
+  [[ -n "$height" ]] && payload=$(echo "$payload" | jq --argjson h "$height" '. + {height: $h}')
+  [[ -n "$seed" ]] && payload=$(echo "$payload" | jq --argjson s "$seed" '. + {seed: $s}')
+
+  # Subject reference (i2i mode)
+  if [[ "$mode" == "i2i" ]]; then
+    if [[ -z "$ref_image" ]]; then
+      echo "Error: --ref-image is required for i2i mode" >&2; exit 1
+    fi
+    local img_url
+    img_url="$(resolve_image "$ref_image")"
+    payload=$(echo "$payload" | jq --arg img "$img_url" '. + {subject_reference: [{type: "character", image_file: $img}]}')
+  fi
 
   local api_host="${MINIMAX_API_HOST:-https://api.minimaxi.com}"
   local api_url="${api_host}/v1/image_generation"
@@ -231,18 +177,13 @@ USAGE
   echo "Model: $model"
   echo "Generating $n image(s)..."
 
-  # Write payload to temp file to avoid command-line length limits
-  local payload_tmp; payload_tmp="$(mktemp)"
-  trap "rm -f '$payload_tmp'" EXIT INT TERM HUP
-  echo -n "$payload" > "$payload_tmp"
-
   local raw_output http_code response
   raw_output="$(curl -s -w "\n%{http_code}" \
     -X POST "$api_url" \
     -H "Authorization: Bearer ${MINIMAX_API_KEY}" \
     -H "Content-Type: application/json" \
     --max-time 120 \
-    -d "@$payload_tmp" 2>/dev/null)" || {
+    -d "$payload" 2>/dev/null)" || {
     echo "Error: curl request failed" >&2
     exit 1
   }
@@ -262,7 +203,6 @@ USAGE
     local status_msg
     status_msg="$(echo "$response" | jq -r '.base_resp.status_msg // "Unknown error"')"
     echo "Error: API error (code $status_code): $status_msg" >&2
-    echo "Full response: $response" >&2
     exit 1
   fi
 
