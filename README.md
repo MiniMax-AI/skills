@@ -24,6 +24,7 @@ Development skills for AI coding agents. Plug into your favorite AI coding tool 
 | `minimax-docx` | Professional DOCX document creation, editing, and formatting using OpenXML SDK (.NET). Three pipelines: create new documents from scratch, fill/edit content in existing documents, or apply template formatting with XSD validation gate-check. | Official |
 | `vision-analysis` | Analyze, describe, and extract information from images using vision AI models. Supports describe, OCR, UI mockup review, chart data extraction, and object detection. Powered by MiniMax VL API with OpenAI GPT-4V fallback. | Community |
 | `minimax-multimodal-toolkit` | Generate voice, music, video, and image content via MiniMax APIs — the unified entry for MiniMax multimodal use cases. Covers TTS (text-to-speech, voice cloning, voice design, multi-segment), music (songs, instrumentals), video (text-to-video, image-to-video, start-end frame, subject reference, templates, long-form multi-scene), image (text-to-image, image-to-image with character reference), and media processing (convert, concat, trim, extract) via FFmpeg. | Official |
+| `agent-context-optimizer` | Keep AI agents from forgetting. Hot layer (<500 tokens) stores recent summaries, decisions, tasks; cold layer (unlimited) stores full history with vector indexing. Zero memory loss, 60-70% token reduction for multi-agent systems. | Community |
 
 ## Installation
 
