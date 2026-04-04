@@ -14,6 +14,8 @@ Development skills for AI coding agents. Plug into your favorite AI coding tool 
 | `fullstack-dev` | Full-stack backend architecture and frontend-backend integration. REST API design, auth flows (JWT, session, OAuth), real-time features (SSE, WebSocket), database integration (SQL / NoSQL), production hardening, and release checklist. Guided workflow: requirements → architecture → implementation. | Official |
 | `android-native-dev` | Android native application development with Material Design 3. Kotlin / Jetpack Compose, adaptive layouts, Gradle configuration, accessibility (WCAG), build troubleshooting, performance optimization, and motion system. | Official |
 | `ios-application-dev` | iOS application development guide covering UIKit, SnapKit, and SwiftUI. Touch targets, safe areas, navigation patterns, Dynamic Type, Dark Mode, accessibility, collection views, and Apple HIG compliance. | Official |
+| `flutter-dev` | Flutter cross-platform development covering widget patterns, Riverpod/Bloc state management, GoRouter navigation, performance optimization, and testing strategies. | Official |
+| `react-native-dev` | React Native and Expo development guide covering components, styling, animations, navigation, state management, forms, networking, performance optimization, testing, native capabilities, and engineering (project structure, deployment, SDK upgrades, CI/CD). | Official |
 | `shader-dev` | Comprehensive GLSL shader techniques for creating stunning visual effects — ray marching, SDF modeling, fluid simulation, particle systems, procedural generation, lighting, post-processing, and more. ShaderToy-compatible. | Official |
 | `gif-sticker-maker` | Convert photos (people, pets, objects, logos) into 4 animated GIF stickers with captions. Funko Pop / Pop Mart style, powered by MiniMax Image & Video Generation API. | Official |
 | `minimax-pdf` | Generate, fill, and reformat PDF documents with a token-based design system. CREATE polished PDFs from scratch (15 cover styles), FILL existing form fields, or REFORMAT documents into a new design. Print-ready output with typography and color derived from document type. | Official |
@@ -24,6 +26,7 @@ Development skills for AI coding agents. Plug into your favorite AI coding tool 
 | `markdown-mcp` | MCP tool for efficient markdown file reading and editing. Replace Python scripts with direct file operations — get file info, grep, read sections, replace text, insert lines via MCP tools. Python stdlib only, no dependencies. | Community |
 | `context-maintainer` | Maintain persistent project context across AI agent sessions. Creates and updates `.context/` files (goals, architecture, decisions, active files, stale files). Triggers on git commit, context threshold, or session end. Gitignored by default. | Community |
 | `context-search` | Search and retrieve persistent context across sessions. Works with `.context/` files — get active context, search decisions, find file history. Optional QMD integration for semantic search. Export to Obsidian vault supported. | Community |
+| `minimax-multimodal-toolkit` | Generate voice, music, video, and image content via MiniMax APIs — the unified entry for MiniMax multimodal use cases. Covers TTS (text-to-speech, voice cloning, voice design, multi-segment), music (songs, instrumentals), video (text-to-video, image-to-video, start-end frame, subject reference, templates, long-form multi-scene), image (text-to-image, image-to-image with character reference), and media processing (convert, concat, trim, extract) via FFmpeg. | Official |
 
 ## Installation
 
@@ -41,6 +44,7 @@ git clone https://github.com/MiniMax-AI/skills.git ~/.cursor/minimax-skills
 ```
 
 Add to your Cursor settings — point the skills path to `~/.cursor/minimax-skills/skills/`.
+For Windows setup and verification, see [`.cursor-plugin/INSTALL.md`](.cursor-plugin/INSTALL.md).
 
 ### Codex
 
@@ -64,6 +68,17 @@ ln -s ~/.minimax-skills/skills/* ~/.config/opencode/skills/
 
 Restart OpenCode to discover the skills. See [`.opencode/INSTALL.md`](.opencode/INSTALL.md) for details.
 
+### VS Code
+
+This repository does not currently ship a standalone VS Code extension.
+
+If you use VS Code, the supported approach is to run one of the supported CLI tools inside the integrated terminal:
+- Codex
+- Claude Code
+- OpenCode
+
+If you want native local-skills configuration from this repo, use Cursor and follow [`.cursor-plugin/INSTALL.md`](.cursor-plugin/INSTALL.md).
+
 ## Contributing
 
 We welcome contributions! Before submitting a PR, please read:
@@ -76,6 +91,10 @@ You can run the validation script locally before submitting:
 ```bash
 python .claude/skills/pr-review/scripts/validate_skills.py
 ```
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MiniMax-AI/skills&type=Date)](https://star-history.com/#MiniMax-AI/skills&Date)
 
 ## License
 

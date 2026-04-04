@@ -1,13 +1,13 @@
 {
   "name": "minimax-skills",
-  "description": "MiniMax AI skills library for frontend, fullstack, and Android native development",
+  "description": "MiniMax AI skills library for frontend, fullstack, mobile, document, presentation, shader, and multimodal media workflows",
   "owner": {
     "name": "MiniMax AI"
   },
   "plugins": [
     {
       "name": "minimax-skills",
-      "description": "MiniMax AI skills library: frontend development, fullstack development, and Android native development",
+      "description": "MiniMax AI skills library for frontend, fullstack, Android, iOS, shader, GIF sticker, document, presentation, spreadsheet, and multimodal media workflows",
       "version": "1.0.0",
       "source": "./",
       "author": {

@@ -14,7 +14,9 @@
 | `fullstack-dev` | 全栈后端架构与前后端集成。REST API 设计、认证流程（JWT、Session、OAuth）、实时功能（SSE、WebSocket）、数据库集成（SQL / NoSQL）、生产环境加固与发布清单。引导式工作流：需求收集 → 架构决策 → 实现。 | Official |
 | `android-native-dev` | 基于 Material Design 3 的 Android 原生应用开发。Kotlin / Jetpack Compose、自适应布局、Gradle 配置、无障碍（WCAG）、构建问题排查，性能优化与动效系统。 | Official |
 | `ios-application-dev` | iOS 应用开发指南，涵盖 UIKit、SnapKit 和 SwiftUI。触控目标、安全区域、导航模式、Dynamic Type、深色模式、无障碍、集合视图，符合 Apple HIG 规范。 | Official |
-| `shader-dev` | 全面的 GLSL 着色器技术，用于创建惊艳的视觉效果 — 光线行进、SDF 建模、流体模拟、粒子系统、程序化生成，光照、后处理等。兼容 ShaderToy。 | Official |
+| `flutter-dev` | Flutter 跨平台开发指南，涵盖 Widget 模式、Riverpod/Bloc 状态管理、GoRouter 导航、性能优化与测试策略。 | Official |
+| `react-native-dev` | React Native 与 Expo 开发指南，涵盖组件、样式、动画、导航、状态管理、表单、网络请求、性能优化、测试、原生能力及工程化（项目结构、部署、SDK 升级、CI/CD）。 | Official |
+| `shader-dev` | 全面的 GLSL 着色器技术，用于创建惊艳的视觉效果 — 光线行进、SDF 建模、流体模拟、粒子系统、程序化生成、光照、后处理等。兼容 ShaderToy。 | Official |
 | `gif-sticker-maker` | 将照片（人物、宠物、物品、Logo）转换为 4 张带字幕的动画 GIF 贴纸。Funko Pop / Pop Mart 盲盒风格，基于 MiniMax 图片与视频生成 API。 | Official |
 | `minimax-pdf` | 基于 token 化设计系统生成、填写和重排 PDF 文档。支持三种模式：CREATE（从零生成，15 种封面风格）、FILL（填写现有表单字段）、REFORMAT（将已有文档重排为新设计）。排版与配色由文档类型自动推导，输出即可打印。 | Official |
 | `pptx-generator` | 生成、编辑和读取 PowerPoint 演示文稿。支持用 PptxGenJS 从零创建（封面、目录、内容、分节页、总结页），通过 XML 工作流编辑现有 PPTX，或用 markitdown 提取文本。 | Official |
@@ -24,6 +26,7 @@
 | `markdown-mcp` | 高效读取和编辑 Markdown 文件的 MCP 工具。无需编写 Python 脚本——通过 MCP 工具直接获取文件信息、搜索、读取章节、替换文本、插入行。纯 Python 标准库，无依赖。 | Community |
 | `context-maintainer` | 在 AI Agent 会话之间维护持久化项目上下文。创建并更新 `.context/` 文件（目标、架构、决策、活动文件、陈旧文件）。在 git 提交、上下文阈值或会话结束时触发。默认加入 .gitignore。 | Community |
 | `context-search` | 在会话之间搜索和检索持久化上下文。与 `.context/` 文件协同工作——获取活跃上下文、搜索决策、查找文件历史。可选 QMD 集成实现语义搜索。支持导出到 Obsidian vault。 | Community |
+| `minimax-multimodal-toolkit` | 通过 MiniMax API 生成语音、音乐、视频和图片内容 — MiniMax 多模态使用场景的统一入口。涵盖 TTS（文字转语音、声音克隆、声音设计、多段合成）、音乐（带词歌曲、纯音乐）、视频（文生视频、图生视频、首尾帧、主体参考、模板、长视频多场景）、图片（文生图、图生图含角色参考），以及基于 FFmpeg 的媒体处理（格式转换、拼接、裁剪、提取）。 | Official |
 
 ## 安装
 
@@ -41,6 +44,7 @@ git clone https://github.com/MiniMax-AI/skills.git ~/.cursor/minimax-skills
 ```
 
 在 Cursor 设置中将 skills 路径指向 `~/.cursor/minimax-skills/skills/`。
+Windows 安装与校验方式见 [`.cursor-plugin/INSTALL.md`](.cursor-plugin/INSTALL.md)。
 
 ### Codex
 
@@ -62,7 +66,18 @@ mkdir -p ~/.config/opencode/skills
 ln -s ~/.minimax-skills/skills/* ~/.config/opencode/skills/
 ```
 
-重启 OpenCode 以发现技能。详见 [`.opencode/INSTALL.md`](.opencode/INSTALL.md)。
+重启 OpenCode 以发现技能。详见 [`.opencode/INSTALL_zh.md`](.opencode/INSTALL_zh.md)。
+
+### VS Code
+
+当前仓库还没有提供独立的 VS Code 扩展。
+
+如果你使用 VS Code，推荐方式是在集成终端里运行已支持的 CLI 工具：
+- Codex
+- Claude Code
+- OpenCode
+
+如果你希望直接使用本仓库的本地 skills 配置，建议使用 Cursor，并参考 [`.cursor-plugin/INSTALL.md`](.cursor-plugin/INSTALL.md)。
 
 ## 贡献
 
@@ -76,6 +91,10 @@ ln -s ~/.minimax-skills/skills/* ~/.config/opencode/skills/
 ```bash
 python .claude/skills/pr-review/scripts/validate_skills.py
 ```
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MiniMax-AI/skills&type=Date)](https://star-history.com/#MiniMax-AI/skills&Date)
 
 ## 许可证
 

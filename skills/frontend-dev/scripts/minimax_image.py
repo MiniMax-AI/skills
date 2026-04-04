@@ -18,7 +18,11 @@ import argparse
 import requests
 
 API_KEY = os.getenv("MINIMAX_API_KEY")
-API_BASE = "https://api.minimax.io/v1"
+# China Mainland: https://api.minimaxi.com/v1
+# Overseas:       https://api.minimax.io/v1
+API_BASE = os.getenv("MINIMAX_API_BASE")
+if not API_BASE:
+    raise SystemExit("ERROR: MINIMAX_API_BASE is not set.")
 
 ASPECT_RATIOS = ["1:1", "16:9", "4:3", "3:2", "2:3", "3:4", "9:16", "21:9"]
 

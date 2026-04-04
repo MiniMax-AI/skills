@@ -12,7 +12,10 @@
 git clone https://github.com/MiniMax-AI/skills.git ~/.minimax-skills
 
 mkdir -p ~/.config/opencode/skills
-ln -s ~/.minimax-skills/skills/* ~/.config/opencode/skills/
+for skill in ~/.minimax-skills/skills/*/; do
+    skill_name=$(basename "$skill")
+    ln -s "$skill" ~/.config/opencode/skills/minimax-"$skill_name"
+done
 ```
 
 ### Windows (PowerShell)
@@ -22,7 +25,7 @@ git clone https://github.com/MiniMax-AI/skills.git "$env:USERPROFILE\.minimax-sk
 
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.config\opencode\skills"
 Get-ChildItem "$env:USERPROFILE\.minimax-skills\skills" -Directory | ForEach-Object {
-    New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\skills\$($_.Name)" -Target $_.FullName
+    New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\skills\minimax-$($_.Name)" -Target $_.FullName
 }
 ```
 
@@ -58,14 +61,14 @@ Symlinks will automatically point to the updated content — no need to re-link.
 ### macOS / Linux
 
 ```bash
-rm -rf ~/.config/opencode/skills
+rm -f ~/.config/opencode/skills/minimax-*
 rm -rf ~/.minimax-skills
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-Remove-Item -Recurse -Force "$env:USERPROFILE\.config\opencode\skills"
+Get-ChildItem "$env:USERPROFILE\.config\opencode\skills\minimax-*" | Remove-Item -Force
 Remove-Item -Recurse -Force "$env:USERPROFILE\.minimax-skills"
 ```
 
