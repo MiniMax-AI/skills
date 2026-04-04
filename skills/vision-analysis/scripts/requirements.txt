@@ -1,0 +1,1 @@
+# No external dependencies — uses only Python stdlib + platform tools (osascript/xclip/wl-paste/powershell)

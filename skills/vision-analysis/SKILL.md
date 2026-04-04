@@ -8,14 +8,16 @@ description: >
   "extract text", "OCR", "what is in", "what's in", "read this image", "see this image",
   "tell me about", "explain this", "interpret this", in connection with an image, screenshot,
   diagram, chart, mockup, wireframe, or photo.
-  Also triggers for: UI mockup review, wireframe analysis, design critique, data extraction
-  from charts, object detection, person/animal/activity identification.
+  Also triggers for: clipboard screenshots (macOS pastes like clipboard-YYYY-MM-DD-*.png),
+  UI mockup review, wireframe analysis, design critique, data extraction from charts,
+  object detection, person/animal/activity identification.
   Triggers: any message with an image file extension (jpg, jpeg, png, gif, webp, bmp, svg),
-  or any request to analyze/describ/understand/review/extract text from an image, screenshot,
+  or any clipboard reference (clipboard-*.png), or any request to
+  analyze/describ/understand/review/extract text from an image, screenshot,
   diagram, chart, photo, mockup, or wireframe.
 license: MIT
 metadata:
-  version: "1.0"
+  version: "1.1"
   category: ai-vision
   sources:
     - MiniMax Token Plan MCP (understand_image tool)
@@ -93,10 +95,35 @@ claude mcp add -s user MiniMax --env MINIMAX_API_KEY=your-key --env MINIMAX_API_
 
 ### Step 1: Auto-detect image
 
-The skill triggers automatically when a message contains an image file path or URL with extensions:
-`.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.bmp`, `.svg`
+The skill triggers automatically when a message contains:
+- An image file path or URL with extensions: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.bmp`, `.svg`
+- A clipboard reference (e.g., `clipboard-YYYY-MM-DD-*.png` from macOS screenshot paste)
+- Any request to analyze an image from the clipboard
 
-Extract the image path from the message.
+Extract the image path from the message. If the path starts with `clipboard-` or refers to a clipboard image, handle it specially (see Step 1b).
+
+### Step 1b: Handle clipboard images
+
+If the image path looks like a macOS clipboard screenshot paste (e.g., `clipboard-2026-04-04-150832-31CED8F8.png`) or the user says "this screenshot" or "clipboard image":
+
+```bash
+/usr/bin/python3 skills/vision-analysis/scripts/clipboard_image.py
+# Saves clipboard image to /tmp/vision-clipboard-<timestamp>.png
+# Output: /tmp/vision-clipboard-20260404_150832.png
+```
+
+**Important:** Always use `/usr/bin/python3` — do NOT use `python3` alone. The agent's PATH may not include python3, but `/usr/bin/python3` exists on macOS and most Linux systems. If `/usr/bin/python3` is not found, try `/usr/local/bin/python3`.
+
+The agent should:
+1. Call the clipboard script
+2. Use the returned path with `MiniMax_understand_image`
+
+**Platform requirements:**
+- macOS: no extra tools needed (uses osascript)
+- Linux: requires `xclip` or `wl-paste` installed
+- Windows: requires PowerShell
+
+If the clipboard script fails (exit code 1 = no image in clipboard, exit code 2 = platform unsupported), inform the user and ask them to save the screenshot to a file first.
 
 ### Step 2: Select analysis mode and call MCP tool
 
@@ -172,3 +199,4 @@ For ui-review mode:
 - Images up to 20MB supported (JPEG, PNG, GIF, WebP)
 - Local file paths work if MiniMax MCP is configured with file access
 - The `MiniMax_understand_image` tool is provided by the `minimax-coding-plan-mcp` package
+- **Clipboard images**: For macOS clipboard pastes (e.g., `clipboard-2026-04-04-*.png`), use the clipboard helper script before calling the MCP tool. Linux requires `xclip` or `wl-paste`. Windows uses PowerShell.
