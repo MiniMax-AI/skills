@@ -15,6 +15,7 @@
 | `android-native-dev` | 基于 Material Design 3 的 Android 原生应用开发。Kotlin / Jetpack Compose、自适应布局、Gradle 配置、无障碍（WCAG）、构建问题排查、性能优化与动效系统。 | Official |
 | `ios-application-dev` | iOS 应用开发指南，涵盖 UIKit、SnapKit 和 SwiftUI。触控目标、安全区域、导航模式、Dynamic Type、深色模式、无障碍、集合视图，符合 Apple HIG 规范。 | Official |
 | `flutter-dev` | Flutter 跨平台开发指南，涵盖 Widget 模式、Riverpod/Bloc 状态管理、GoRouter 导航、性能优化与测试策略。 | Official |
+| `excel-wps-table-diagnosis` | 诊断电子表格文件（.xlsx、.xlsm、.csv、.tsv）的表格结构，规划数据清理工作流，并排查公式问题。涵盖数据质量审计（空白行、重复项、类型混乱，空格）、查找键准备、公式排障（#REF!、#VALUE! 等）以及基于审批的清理工作流。诊断为只读操作 — 在任何写入操作之前暂停并等待用户审批。 | Community |
 | `react-native-dev` | React Native 与 Expo 开发指南，涵盖组件、样式、动画、导航、状态管理、表单、网络请求、性能优化、测试、原生能力及工程化（项目结构、部署、SDK 升级、CI/CD）。 | Official |
 | `shader-dev` | 全面的 GLSL 着色器技术，用于创建惊艳的视觉效果 — 光线行进、SDF 建模、流体模拟、粒子系统、程序化生成、光照、后处理等。兼容 ShaderToy。 | Official |
 | `gif-sticker-maker` | 将照片（人物、宠物、物品、Logo）转换为 4 张带字幕的动画 GIF 贴纸。Funko Pop / Pop Mart 盲盒风格，基于 MiniMax 图片与视频生成 API。 | Official |
