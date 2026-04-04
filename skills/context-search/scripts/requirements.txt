@@ -1,0 +1,2 @@
+# No external dependencies — Python stdlib only
+# Optional: qmd for semantic search (install separately: npm install -g @tobilu/qmd)
