@@ -1,0 +1,3 @@
+[submodule "skills/agent-context-optimizer"]
+	path = skills/agent-context-optimizer
+	url = https://github.com/roymaste/context-optimizer.git
