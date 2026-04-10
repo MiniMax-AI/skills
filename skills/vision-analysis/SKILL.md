@@ -30,11 +30,11 @@ auto-skill-loader_minimax_understand_image
 
 **Arguments:**
 - `prompt`: Analysis question (use mode-specific prompts below)
-- `image_source`: Path to local image, or URL
+- `image_source`: URL (preferred), or path to local image
 
 **Prerequisites:** `MINIMAX_TOKEN_PLAN_KEY` env var set (Token Plan API key from https://platform.minimax.io).
 
-**If you get "file not found" error:** The image path may be a macOS clipboard paste (`clipboard-YYYY-MM-DD-*.png`). Run the clipboard extraction inline (see Clipboard section), then use the returned path.
+**URL first:** When images are shared in Claude Code or OpenCode chat, they are uploaded to a URL first. Use that URL directly — it works reliably. Only fall back to clipboard/local file extraction if URL is not available.
 
 ## Analysis Modes
 
@@ -63,9 +63,36 @@ print(f'OK: {mb:.2f}MB')
 
 Skip validation for URLs.
 
-## Clipboard Images (macOS screenshot pastes)
+## Clipboard / Local File Fallback
 
-If image path looks like `clipboard-YYYY-MM-DD-*.png`, extract it first using the inline script below — do NOT pass clipboard paths directly to the MCP tool:
+If the image is a local path (not a URL) and the path doesn't exist or gives "file not found", try extracting from clipboard first:
+
+**macOS:**
+```bash
+/usr/bin/python3 -c "
+import subprocess, tempfile, os, sys, pathlib, time
+tmp = pathlib.Path('/tmp')
+ts = time.strftime('%Y%m%d_%H%M%S')
+fpath = tmp / f'vision-clipboard-{ts}.png'
+script = f'''tell application \"System Events\"
+set clipData to (the clipboard as «class PNGf»)
+end tell
+set cf to open for access (POSIX file \"{fpath}\") as POSIX file with write permission
+write clipData to cf
+close access cf'''
+with tempfile.NamedTemporaryFile(mode='w', suffix='.applescript', delete=False) as s:
+    s.write(script); s.flush()
+    r = subprocess.run(['/usr/bin/osascript', s.name], capture_output=True)
+    os.unlink(s.name)
+    if r.returncode == 0 and fpath.exists() and fpath.stat().st_size > 0:
+        print(str(fpath)); sys.exit(0)
+sys.exit(1)
+"
+```
+
+**Linux:** requires `xclip` or `wl-paste`. **Windows:** use PowerShell.
+
+If clipboard extraction fails, try asking the user to share the image via URL or save to a local file.
 
 ```bash
 /usr/bin/python3 -c "
