@@ -14,27 +14,43 @@ description: >
   project advice, or any request that does not involve an image.
 license: MIT
 metadata:
-  version: "1.3"
+  version: "1.4"
   category: ai-vision
 ---
 
 # Vision Analysis
 
-Use MiniMax VLM to analyze images. Tool is provided by `auto-skill-loader` (bypasses OpenCode's broken minimax-coding-plan-mcp stdio transport).
+Use MiniMax VLM to analyze images.
 
-## Tool to Call
+## Tool to Call — Use `mmx vision describe`
+
+**Preferred tool:** `mmx vision describe` from [mmx-cli](https://github.com/MiniMax-AI/cli). It's a direct REST call to the MiniMax VLM endpoint — no MCP transport issues, handles URLs and local files automatically.
+
+```bash
+mmx vision describe --image <url-or-path> --prompt "<prompt>"
+```
+
+**Arguments:**
+- `--image`: URL (preferred) or local file path — mmx downloads and base64-encodes automatically
+- `--prompt`: Analysis question (use mode-specific prompts below)
+
+**Prerequisites:** `MINIMAX_API_KEY` env var set (same key as for other MiniMax tools).
+
+**URL first:** When images are shared in chat, they get uploaded to a URL. Use that URL directly — mmx downloads it automatically. No clipboard extraction needed.
+
+## Fallback: MCP Tool
+
+If `mmx` is not installed and the MCP tool is available:
 
 ```
 auto-skill-loader_minimax_understand_image
 ```
 
 **Arguments:**
-- `prompt`: Analysis question (use mode-specific prompts below)
+- `prompt`: Analysis question
 - `image_source`: URL (preferred), or path to local image
 
-**Prerequisites:** `MINIMAX_TOKEN_PLAN_KEY` env var set (Token Plan API key from https://platform.minimax.io).
-
-**URL first:** When images are shared in Claude Code or OpenCode chat, they are uploaded to a URL first. Use that URL directly — it works reliably. Only fall back to clipboard/local file extraction if URL is not available.
+**Prerequisites:** `MINIMAX_TOKEN_PLAN_KEY` env var set, `auto-skill-loader` MCP enabled.
 
 ## Analysis Modes
 
@@ -46,33 +62,32 @@ auto-skill-loader_minimax_understand_image
 | `chart-data` | "Extract all data from this chart/graph. List: title, axis labels, all data points/series with values, and trend summary." |
 | `object-detect` | "List all distinct objects, people, and activities. For each: what it is and approximate location in the image." |
 
-## Image Validation (required before calling tool)
+## Image Validation
 
-Run this first:
+**For mmx:** No validation needed — it handles URLs, local files, and size limits via error messages.
+
+**For MCP fallback only** (local files):
 ```bash
 /usr/bin/python3 -c "
 import sys, pathlib
 p = pathlib.Path(sys.argv[1])
 if not p.exists(): print('ERROR: file not found'); sys.exit(1)
-if not p.is_file(): print('ERROR: not a regular file'); sys.exit(1)
 mb = p.stat().st_size / 1024**2
 if mb > 20: print(f'ERROR: too large ({mb:.1f}MB > 20MB)'); sys.exit(1)
 print(f'OK: {mb:.2f}MB')
 " "\$IMAGE_PATH"
 ```
+Skip for URLs.
 
-Skip validation for URLs.
+## Clipboard Fallback
 
-## Clipboard / Local File Fallback
-
-If the image is a local path (not a URL) and the path doesn't exist or gives "file not found", try extracting from clipboard first:
+Only needed when: (1) no URL is available, (2) no local file, and (3) mmx not installed.
 
 **macOS:**
 ```bash
 /usr/bin/python3 -c "
 import subprocess, tempfile, os, sys, pathlib, time
-tmp = pathlib.Path('/tmp')
-ts = time.strftime('%Y%m%d_%H%M%S')
+tmp = pathlib.Path('/tmp'); ts = time.strftime('%Y%m%d_%H%M%S')
 fpath = tmp / f'vision-clipboard-{ts}.png'
 script = f'''tell application \"System Events\"
 set clipData to (the clipboard as «class PNGf»)
@@ -90,44 +105,26 @@ sys.exit(1)
 "
 ```
 
-**Linux:** requires `xclip` or `wl-paste`. **Windows:** use PowerShell.
-
-If clipboard extraction fails, try asking the user to share the image via URL or save to a local file.
-
-```bash
-/usr/bin/python3 -c "
-import subprocess, tempfile, os, sys, pathlib, time
-
-tmp = pathlib.Path('/tmp')
-ts = time.strftime('%Y%m%d_%H%M%S')
-fpath = tmp / f'vision-clipboard-{ts}.png'
-script = f'''tell application \"System Events\"
-set clipText to (the clipboard as string)
-end tell
-set clipData to (the clipboard as «class PNGf»)
-set cf to open for access (POSIX file \"{fpath}\") as POSIX file with write permission
-write clipData to cf
-close access cf'''
-with tempfile.NamedTemporaryFile(mode='w', suffix='.applescript', delete=False) as s:
-    s.write(script); s.flush()
-    r = subprocess.run(['/usr/bin/osascript', s.name], capture_output=True)
-    os.unlink(s.name)
-    if r.returncode == 0 and fpath.exists() and fpath.stat().st_size > 0:
-        print(str(fpath)); sys.exit(0)
-sys.exit(1)
-"
-```
-
-Linux: requires `xclip`. Windows: use PowerShell.
+If this fails, ask the user to save the image to a file or share a URL.
 
 ## Security Notes
 
 - Images up to 20MB (JPEG, PNG, GIF, WebP)
-- Warn before analyzing images from untrusted external URLs (indirect prompt injection risk)
-- Never hardcode API keys — use `MINIMAX_TOKEN_PLAN_KEY` env var
+- mmx handles URLs by downloading first — warn on untrusted URLs (prompt injection risk)
+- Never hardcode API keys — use env vars
 
 ## Setup
 
+### mmx-cli (recommended — no MCP needed)
+
+```bash
+npm install -g mmx-cli
+```
+
+Set `MINIMAX_API_KEY` in your environment. Works in any host (Claude Code, OpenCode, terminal). For agents: `npx skills add MiniMax-AI/cli -y -g` installs the skill with mmx.
+
+### MCP fallback (auto-skill-loader)
+
 1. Ensure `auto-skill-loader` MCP is enabled in OpenCode config
 2. Set `MINIMAX_TOKEN_PLAN_KEY=sk-cp-...` in `~/.config/opencode/.env`
-3. Disable any direct `minimax-coding-plan-mcp` MCP entries (they have broken stdio)
+3. Disable any direct `minimax-coding-plan-mcp` MCP entries (broken stdio transport)
