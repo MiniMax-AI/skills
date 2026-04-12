@@ -26,7 +26,7 @@
 | `minimax-multimodal-toolkit` | 通过 MiniMax API 生成语音、音乐、视频和图片内容 — MiniMax 多模态使用场景的统一入口。涵盖 TTS（文字转语音、声音克隆、声音设计、多段合成）、音乐（带词歌曲、纯音乐）、视频（文生视频、图生视频、首尾帧、主体参考、模板、长视频多场景）、图片（文生图、图生图含角色参考），以及基于 FFmpeg 的媒体处理（格式转换、拼接、裁剪、提取）。 | Official |
 | `minimax-music-gen` | 使用 MiniMax Music API 生成人声歌曲、纯音乐和翻唱。支持基础模式（一句话生成）和强控制模式（编辑歌词、调整 prompt、规划曲式）。内置歌词生成、风格词表、流式播放和迭代反馈。 | Official |
 | `buddy-sings` | 让你的 Claude Code 宠物（/buddy）唱一首专属歌曲。根据宠物名字和个性生成独特声线并缓存，自动采集上下文（对话、记忆、git 历史）生成主题歌词，调用 minimax-music-gen 完成创作。 | Official |
-| `minimax-music-playlist` | 扫描本地音乐库（Apple Music、QQ 音乐、Spotify、网易云）生成个性化歌单。构建音乐画像（曲风、情绪、语言、声线偏好），规划主题曲目，并发生成歌曲与专辑封面，根据反馈持续优化画像。 | Official |
+| `minimax-music-playlist` | 分析用户音乐品味生成个性化歌单。构建音乐画像（曲风、情绪、语言、声线偏好），规划主题曲目，生成歌曲与专辑封面，根据反馈持续优化画像。 | Official |
 
 ## 安装
 
