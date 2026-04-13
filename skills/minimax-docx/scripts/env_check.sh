@@ -65,17 +65,11 @@ if [ -d "$DOTNET_DIR" ]; then
        [ -f "$DOTNET_DIR/MiniMaxAIDocx.Cli/bin/Debug/net8.0/MiniMaxAIDocx.Cli.dll" ]; then
         printf "[OK]      %-14s built\n" "project"
     else
-        # Try restore + build
-        if dotnet restore "$DOTNET_DIR" --verbosity quiet &>/dev/null; then
-            printf "[OK]      %-14s packages restored\n" "nuget"
-            if dotnet build "$DOTNET_DIR" --verbosity quiet --no-restore &>/dev/null; then
-                printf "[OK]      %-14s build succeeded\n" "project"
-            else
-                printf "[FAIL]    %-14s build failed (run: dotnet build %s)\n" "project" "$DOTNET_DIR"
-                STATUS="NOT READY"
-            fi
+        # Try restore + build in a subshell so we don't alter the script's working directory
+        if (cd "$DOTNET_DIR" && dotnet restore --verbosity quiet && dotnet build --verbosity quiet --no-restore) &>/dev/null; then
+            printf "[OK]      %-14s build succeeded\n" "project"
         else
-            printf "[FAIL]    %-14s restore failed\n" "nuget"
+            printf "[FAIL]    %-14s restore or build failed\n" "nuget"
             echo ""
             echo "  Common causes:"
             echo "    - No internet access (NuGet needs to download packages)"
