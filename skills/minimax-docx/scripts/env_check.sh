@@ -7,6 +7,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 DOTNET_DIR="$SCRIPT_DIR/dotnet"
+CLI_PROJECT="$DOTNET_DIR/MiniMaxAIDocx.Cli/MiniMaxAIDocx.Cli.csproj"
+DEFAULT_NUGET_SOURCE="https://api.nuget.org/v3/index.json"
 
 # Force English output for dotnet CLI
 export DOTNET_CLI_UI_LANGUAGE=en
@@ -16,6 +18,59 @@ echo ""
 
 STATUS="READY"
 WARNINGS=0
+
+trim() {
+    local value="$1"
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
+    printf '%s' "$value"
+}
+
+append_default_restore_sources() {
+    RESTORE_SOURCE_ARGS+=("--source" "$DEFAULT_NUGET_SOURCE")
+    RESTORE_SOURCE_LABELS+=("$DEFAULT_NUGET_SOURCE")
+
+    local local_feed
+    for local_feed in "$DOTNET_DIR/packages" "$PROJECT_DIR/assets/nuget"; do
+        if [ -d "$local_feed" ]; then
+            RESTORE_SOURCE_ARGS+=("--source" "$local_feed")
+            RESTORE_SOURCE_LABELS+=("$local_feed")
+        fi
+    done
+}
+
+collect_restore_sources() {
+    RESTORE_SOURCE_ARGS=()
+    RESTORE_SOURCE_LABELS=()
+
+    local raw_sources="${MINIMAX_DOCX_NUGET_SOURCES:-}"
+    local source
+
+    if [ -n "$raw_sources" ]; then
+        local OLDIFS="$IFS"
+        IFS=';'
+        read -r -a configured_sources <<< "$raw_sources"
+        IFS="$OLDIFS"
+
+        for source in "${configured_sources[@]}"; do
+            source="$(trim "$source")"
+            [ -n "$source" ] || continue
+            RESTORE_SOURCE_ARGS+=("--source" "$source")
+            RESTORE_SOURCE_LABELS+=("$source")
+        done
+
+        if [ "${#RESTORE_SOURCE_ARGS[@]}" -gt 0 ]; then
+            return
+        fi
+    fi
+
+    append_default_restore_sources
+}
+
+quote_for_display() {
+    local value="$1"
+    printf '"%s"' "$value"
+}
 
 # --- Detect platform ---
 OS="unknown"
@@ -61,26 +116,30 @@ fi
 
 # --- Critical: NuGet packages ---
 if [ -d "$DOTNET_DIR" ]; then
+    collect_restore_sources
     if [ -f "$DOTNET_DIR/MiniMaxAIDocx.Cli/bin/Debug/net10.0/MiniMaxAIDocx.Cli.dll" ] || \
        [ -f "$DOTNET_DIR/MiniMaxAIDocx.Cli/bin/Debug/net8.0/MiniMaxAIDocx.Cli.dll" ]; then
         printf "[OK]      %-14s built\n" "project"
     else
         # Try restore + build
-        if dotnet restore "$DOTNET_DIR" --verbosity quiet &>/dev/null; then
+        if dotnet restore "$CLI_PROJECT" --verbosity quiet --ignore-failed-sources "${RESTORE_SOURCE_ARGS[@]}" &>/dev/null; then
             printf "[OK]      %-14s packages restored\n" "nuget"
-            if dotnet build "$DOTNET_DIR" --verbosity quiet --no-restore &>/dev/null; then
+            if dotnet build "$CLI_PROJECT" --verbosity quiet --no-restore &>/dev/null; then
                 printf "[OK]      %-14s build succeeded\n" "project"
             else
-                printf "[FAIL]    %-14s build failed (run: dotnet build %s)\n" "project" "$DOTNET_DIR"
+                printf "[FAIL]    %-14s build failed (run: dotnet build %s)\n" "project" "$(quote_for_display "$CLI_PROJECT")"
                 STATUS="NOT READY"
             fi
         else
             printf "[FAIL]    %-14s restore failed\n" "nuget"
             echo ""
             echo "  Common causes:"
-            echo "    - No internet access (NuGet needs to download packages)"
-            echo "    - Corporate proxy blocking nuget.org"
+            echo "    - No internet access to the configured NuGet source(s)"
+            echo "    - Corporate proxy or sandbox DNS blocking nuget.org"
+            echo "    - Custom/local feed missing required packages"
             echo "    - SSL certificate issues (try: dotnet nuget list source)"
+            echo "  Source(s): ${RESTORE_SOURCE_LABELS[*]}"
+            echo "  Override sources: export MINIMAX_DOCX_NUGET_SOURCES='https://mirror.example/v3/index.json;/path/to/local/feed'"
             echo ""
             STATUS="NOT READY"
         fi
