@@ -14,7 +14,7 @@ metadata:
 
 # MiniMax Music Playlist — Personalized Playlist Generator
 
-Scan the user's local music libraries, build a taste profile, generate a personalized
+Scan the user's music taste, build a taste profile, generate a personalized
 playlist, and create an album cover. This skill is designed for both agent and direct
 user invocation — adapt interaction style to context.
 
@@ -56,7 +56,6 @@ Collect the user's listening data from available sources.
 |--------|--------|-------------|
 | Apple Music | `osascript` to query Music.app (official AppleScript interface) | Track name, artist, album, genre, play count |
 | Spotify | User exports their own data via [Spotify Privacy Settings](https://www.spotify.com/account/privacy/) | JSON files in ZIP (`Streaming_History_Audio_*.json`) |
-| NetEase | Read local JSON data files in `~/Library/Containers/com.netease.163music/Data/Documents/storage/` | JSON files (webdata, tracks, FM queue) |
 | Manual input | User describes their taste directly | Free text |
 
 **Spotify data export flow:**
@@ -87,13 +86,12 @@ Do NOT use or store `ip_addr` or other sensitive fields.
 - Track names + artist names (primary signal)
 - Playlist names and membership (e.g., a playlist named "Chinese Traditional" tells you genre preference)
 - Play counts or streaming duration if available (weight frequently played tracks higher)
-- Scene/mood tags if available (NetEase has these)
+- Scene/mood tags if available
 
 **Approach:**
 1. Check if Apple Music is available (try `osascript` query)
 2. Ask if the user has a Spotify data export ZIP to provide
-3. Check if NetEase data exists locally (`ls` the data path)
-4. If no sources available, ask the user to describe their taste manually
+3. If no sources available, ask the user to describe their taste manually
 
 **Privacy rule:** Never show raw track lists to the user. Only show aggregated stats.
 
@@ -128,7 +126,7 @@ Most raw data only has artist + track names without genre tags. To enrich this:
 **Show user a summary:**
 ```
 Your Music Profile:
-  Sources: Apple Music 230 | Spotify 140 | NetEase 197
+  Sources: Apple Music 230 | Spotify 140
   Genres: J-pop 20% | R&B 15% | Classical 10% | Indie Pop 9%
   Moods: Melancholic 25% | Calm 20% | Romantic 18%
   Vocals: Female 65% | Male 35%
@@ -206,8 +204,6 @@ Playlist Plan: Late Night Chill (5 songs)
    Tender male voice, acoustic guitar, harmonica, quiet solitude
 
 5. Ambient electronic — calm  Instrumental
-   Soft synth pads, gentle arpeggios, dreamy atmosphere
-```
    Soft synth pads, gentle arpeggios, dreamy atmosphere
 ```
 
