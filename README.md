@@ -27,6 +27,7 @@ Development skills for AI coding agents. Plug into your favorite AI coding tool 
 | `minimax-music-gen` | Generate vocal songs, instrumentals, and covers using MiniMax Music API. Two modes: Basic (one-liner in, song out) and Advanced Control (edit lyrics, refine prompt, plan structure). Supports lyrics generation, style vocabulary, streaming playback, and iterative feedback. | Official |
 | `buddy-sings` | Let your Claude Code pet (/buddy) sing a personalized song. Interprets the pet's name and personality into a unique cached vocal identity, auto-gathers context (conversation, memory, git history) for themed lyrics, and generates music via minimax-music-gen. | Official |
 | `minimax-music-playlist` | Generate personalized playlists by analyzing your music taste. Builds a taste profile (genre, mood, language, vocal preferences), plans a themed tracklist, generates songs with album cover art, and refines the profile from feedback. | Official |
+| `minimax-text-gen` | Integrate MiniMax's text generation API into Python or JavaScript applications. Uses MiniMax-M2.7 and MiniMax-M2.7-highspeed models via the OpenAI-compatible endpoint. Covers chat completion, streaming, function calling, and integration checklist. No CLI required — direct API integration. | Community |
 
 ## Installation
 
