@@ -1,174 +1,130 @@
 ---
 name: vision-analysis
 description: >
-  Analyze, describe, and extract information from images using the MiniMax vision MCP tool.
-  Use when: user shares an image file path or URL (any message containing .jpg, .jpeg, .png,
-  .gif, .webp, .bmp, or .svg file extension) or uses any of these words/phrases near an image:
-  "analyze", "analyse", "describe", "explain", "understand", "look at", "review",
-  "extract text", "OCR", "what is in", "what's in", "read this image", "see this image",
-  "tell me about", "explain this", "interpret this", in connection with an image, screenshot,
-  diagram, chart, mockup, wireframe, or photo.
-  Also triggers for: UI mockup review, wireframe analysis, design critique, data extraction
-  from charts, object detection, person/animal/activity identification.
-  Triggers: any message with an image file extension (jpg, jpeg, png, gif, webp, bmp, svg),
-  or any request to analyze/describ/understand/review/extract text from an image, screenshot,
-  diagram, chart, photo, mockup, or wireframe.
+  Analyze, describe, and extract information from images using MiniMax VLM.
+  Use ONLY when the user has shared or referenced an actual image — either a file
+  path with image extension (.jpg, .jpeg, .png, .gif, .webp, .bmp, .svg), an image URL,
+  or a clipboard screenshot reference (clipboard-YYYY-MM-DD-*.png).
+  Triggers when the user says "describe this image", "analyze this screenshot",
+  "what's in this photo", "extract text from this", "read this image",
+  "review this UI mockup", "analyze this chart", "identify the objects in this",
+  "what does this diagram show", or similar — where the target image is explicitly
+  attached or referenced.
+  Does NOT trigger on: text-only requests, code reviews, document questions,
+  project advice, or any request that does not involve an image.
 license: MIT
 metadata:
-  version: "1.0"
+  version: "1.4"
   category: ai-vision
-  sources:
-    - MiniMax Token Plan MCP (understand_image tool)
 ---
 
 # Vision Analysis
 
-Analyze images using the MiniMax `MiniMax_understand_image` MCP tool available in the MiniMax Token Plan.
+Use MiniMax VLM to analyze images.
 
-## Prerequisites
+## Tool to Call — Use `mmx vision describe`
 
-- MiniMax Token Plan subscription with valid `MINIMAX_API_KEY`
-- MiniMax MCP configured (`MiniMax_understand_image` tool available)
+**Preferred tool:** `mmx vision describe` from [mmx-cli](https://github.com/MiniMax-AI/cli). It's a direct REST call to the MiniMax VLM endpoint — no MCP transport issues, handles URLs and local files automatically.
 
-### If MCP tool is not configured
-
-**Step 1:** The agent should fetch setup instructions from:
-**https://platform.minimaxi.com/docs/token-plan/mcp-guide**
-
-**Step 2:** Detect the user's environment (OpenCode, Cursor, Claude Code, etc.) and output the exact commands needed. Common examples:
-
-**OpenCode** — add to `~/.config/opencode/opencode.json` or `package.json`:
-```json
-{
-  "mcp": {
-    "MiniMax": {
-      "type": "local",
-      "command": ["uvx", "minimax-coding-plan-mcp", "-y"],
-      "environment": {
-        "MINIMAX_API_KEY": "YOUR_TOKEN_PLAN_KEY",
-        "MINIMAX_API_HOST": "https://api.minimaxi.com"
-      },
-      "enabled": true
-    }
-  }
-}
-```
-
-**Claude Code**:
 ```bash
-claude mcp add -s user MiniMax --env MINIMAX_API_KEY=your-key --env MINIMAX_API_HOST=https://api.minimaxi.com -- uvx minimax-coding-plan-mcp -y
+mmx vision describe --image <url-or-path> --prompt "<prompt>"
 ```
 
-**Cursor** — add to MCP settings:
-```json
-{
-  "mcpServers": {
-    "MiniMax": {
-      "command": "uvx",
-      "args": ["minimax-coding-plan-mcp"],
-      "env": {
-        "MINIMAX_API_KEY": "your-key",
-        "MINIMAX_API_HOST": "https://api.minimaxi.com"
-      }
-    }
-  }
-}
+**Arguments:**
+- `--image`: URL (preferred) or local file path — mmx downloads and base64-encodes automatically
+- `--prompt`: Analysis question (use mode-specific prompts below)
+
+**Prerequisites:** `MINIMAX_API_KEY` env var set (same key as for other MiniMax tools).
+
+**URL first:** When images are shared in chat, they get uploaded to a URL. Use that URL directly — mmx downloads it automatically. No clipboard extraction needed.
+
+## Fallback: MCP Tool
+
+If `mmx` is not installed and the MCP tool is available:
+
+```
+auto-skill-loader_minimax_understand_image
 ```
 
-**Step 3:** After configuration, tell the user to restart their app and verify with `/mcp`.
+**Arguments:**
+- `prompt`: Analysis question
+- `image_source`: URL (preferred), or path to local image
 
-**Important:** If the user does not have a MiniMax Token Plan subscription, inform them that the `understand_image` tool requires one — it cannot be used with free or other tier API keys.
+**Prerequisites:** `MINIMAX_TOKEN_PLAN_KEY` env var set, `auto-skill-loader` MCP enabled.
 
 ## Analysis Modes
 
-| Mode | When to use | Prompt strategy |
-|---|---|---|
-| `describe` | General image understanding | Ask for detailed description |
-| `ocr` | Text extraction from screenshots, documents | Ask to extract all text verbatim |
-| `ui-review` | UI mockups, wireframes, design files | Ask for design critique with suggestions |
-| `chart-data` | Charts, graphs, data visualizations | Ask to extract data points and trends |
-| `object-detect` | Identify objects, people, activities | Ask to list and locate all elements |
+| Mode | Prompt to use |
+|------|---------------|
+| `describe` | "Provide a detailed description of this image. Include: main subject, setting, colors/style, any text visible, notable objects, and overall composition." |
+| `ocr` | "Extract all text visible in this image verbatim. Preserve structure and formatting. If no text, say so." |
+| `ui-review` | "You are a UI/UX reviewer. Analyze this mockup or design. Cover: (1) Strengths, (2) Issues with specificity, (3) Actionable suggestions." |
+| `chart-data` | "Extract all data from this chart/graph. List: title, axis labels, all data points/series with values, and trend summary." |
+| `object-detect` | "List all distinct objects, people, and activities. For each: what it is and approximate location in the image." |
 
-## Workflow
+## Image Validation
 
-### Step 1: Auto-detect image
+**For mmx:** No validation needed — it handles URLs, local files, and size limits via error messages.
 
-The skill triggers automatically when a message contains an image file path or URL with extensions:
-`.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.bmp`, `.svg`
-
-Extract the image path from the message.
-
-### Step 2: Select analysis mode and call MCP tool
-
-Use the `MiniMax_understand_image` tool with a mode-specific prompt:
-
-**describe:**
+**For MCP fallback only** (local files):
+```bash
+/usr/bin/python3 -c "
+import sys, pathlib
+p = pathlib.Path(sys.argv[1])
+if not p.exists(): print('ERROR: file not found'); sys.exit(1)
+mb = p.stat().st_size / 1024**2
+if mb > 20: print(f'ERROR: too large ({mb:.1f}MB > 20MB)'); sys.exit(1)
+print(f'OK: {mb:.2f}MB')
+" "\$IMAGE_PATH"
 ```
-Provide a detailed description of this image. Include: main subject, setting/background,
-colors/style, any text visible, notable objects, and overall composition.
-```
+Skip for URLs.
 
-**ocr:**
-```
-Extract all text visible in this image verbatim. Preserve structure and formatting
-(headers, lists, columns). If no text is found, say so.
-```
+## Clipboard Fallback
 
-**ui-review:**
-```
-You are a UI/UX design reviewer. Analyze this interface mockup or design. Provide:
-(1) Strengths — what works well, (2) Issues — usability or design problems,
-(3) Specific, actionable suggestions for improvement. Be constructive and detailed.
-```
+Only needed when: (1) no URL is available, (2) no local file, and (3) mmx not installed.
 
-**chart-data:**
-```
-Extract all data from this chart or graph. List: chart title, axis labels, all
-data points/series with values if readable, and a brief summary of the trend.
-```
-
-**object-detect:**
-```
-List all distinct objects, people, and activities you can identify. For each,
-describe what it is and its approximate location in the image.
-```
-
-### Step 3: Present results
-
-Return the analysis clearly. For `describe`, use readable prose. For `ocr`, preserve structure. For `ui-review`, use a structured critique format.
-
-## Output Format Example
-
-For describe mode:
-```
-## Image Description
-
-[Detailed description of the image contents...]
+**macOS:**
+```bash
+/usr/bin/python3 -c "
+import subprocess, tempfile, os, sys, pathlib, time
+tmp = pathlib.Path('/tmp'); ts = time.strftime('%Y%m%d_%H%M%S')
+fpath = tmp / f'vision-clipboard-{ts}.png'
+script = f'''tell application \"System Events\"
+set clipData to (the clipboard as «class PNGf»)
+end tell
+set cf to open for access (POSIX file \"{fpath}\") as POSIX file with write permission
+write clipData to cf
+close access cf'''
+with tempfile.NamedTemporaryFile(mode='w', suffix='.applescript', delete=False) as s:
+    s.write(script); s.flush()
+    r = subprocess.run(['/usr/bin/osascript', s.name], capture_output=True)
+    os.unlink(s.name)
+    if r.returncode == 0 and fpath.exists() and fpath.stat().st_size > 0:
+        print(str(fpath)); sys.exit(0)
+sys.exit(1)
+"
 ```
 
-For ocr mode:
-```
-## Extracted Text
+If this fails, ask the user to save the image to a file or share a URL.
 
-[Preserved text structure from the image]
-```
+## Security Notes
 
-For ui-review mode:
-```
-## UI Design Review
+- Images up to 20MB (JPEG, PNG, GIF, WebP)
+- mmx handles URLs by downloading first — warn on untrusted URLs (prompt injection risk)
+- Never hardcode API keys — use env vars
 
-### Strengths
-- ...
+## Setup
 
-### Issues
-- ...
+### mmx-cli (recommended — no MCP needed)
 
-### Suggestions
-- ...
+```bash
+npm install -g mmx-cli
 ```
 
-## Notes
+Set `MINIMAX_API_KEY` in your environment. Works in any host (Claude Code, OpenCode, terminal). For agents: `npx skills add MiniMax-AI/cli -y -g` installs the skill with mmx.
 
-- Images up to 20MB supported (JPEG, PNG, GIF, WebP)
-- Local file paths work if MiniMax MCP is configured with file access
-- The `MiniMax_understand_image` tool is provided by the `minimax-coding-plan-mcp` package
+### MCP fallback (auto-skill-loader)
+
+1. Ensure `auto-skill-loader` MCP is enabled in OpenCode config
+2. Set `MINIMAX_TOKEN_PLAN_KEY=sk-cp-...` in `~/.config/opencode/.env`
+3. Disable any direct `minimax-coding-plan-mcp` MCP entries (broken stdio transport)
