@@ -42,6 +42,28 @@ Create, edit, and format DOCX documents via CLI tools or direct C# scripts built
 
 **First operation in session:** `scripts/env_check.sh` — do not proceed if `NOT READY`. (Skip on subsequent operations within the same session.)
 
+The setup helpers restore and build `scripts/dotnet/MiniMaxAIDocx.Cli/MiniMaxAIDocx.Cli.csproj` directly for .NET 8+ compatibility. Do not rely on `dotnet restore scripts/dotnet/` because the repo's `.slnx` file is not supported by older SDKs.
+
+### Restricted network / offline NuGet setup
+
+If `nuget.org` is blocked, set `MINIMAX_DOCX_NUGET_SOURCES` before running setup or `env_check.sh`. Use a semicolon-separated list of reachable NuGet feeds or local package directories:
+
+```bash
+export MINIMAX_DOCX_NUGET_SOURCES="https://mirror.example/v3/index.json;/absolute/path/to/local/feed"
+bash scripts/setup.sh --minimal
+```
+
+```powershell
+$env:MINIMAX_DOCX_NUGET_SOURCES = "https://mirror.example/v3/index.json;C:\path\to\local\feed"
+powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -Minimal
+```
+
+If you stage offline `.nupkg` files locally, the setup scripts also auto-detect these directories:
+- `scripts/dotnet/packages`
+- `assets/nuget`
+
+The restore step uses `--ignore-failed-sources`, so a blocked remote feed will not break installation when the required packages are already available from cache or a local mirror.
+
 ## Quick Start: Direct C# Path
 
 When the task requires structural document manipulation (custom styles, complex tables, multi-section layouts, headers/footers, TOC, images), write C# directly instead of wrestling with CLI limitations. Use this scaffold:
