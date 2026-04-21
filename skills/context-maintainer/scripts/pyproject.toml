@@ -1,0 +1,12 @@
+[project]
+name = "context-maintainer-mcp"
+version = "1.0.0"
+description = "MCP server for maintaining persistent .context/ files across AI agent sessions"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+context-maintainer-mcp = "server:main"
+
+[tool.upload]
+distributions = ["sdist", "wheel"]
