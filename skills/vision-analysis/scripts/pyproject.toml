@@ -1,0 +1,12 @@
+[project]
+name = "vision-analysis-helper"
+version = "1.1.0"
+description = "Helper scripts for vision-analysis skill — clipboard image handler"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+vision-clipboard = "clipboard_image:save_clipboard_image"
+
+[tool.upload]
+distributions = ["sdist", "wheel"]
