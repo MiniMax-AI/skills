@@ -3,8 +3,8 @@
 ## Full Schema
 
 ```yaml
-manifest_version: "1"
-name: "workflow-name"
+meta:
+  name: "workflow-name"
 
 config:
   model: "MiniMax/MiniMax"           # LLM model (optional)
@@ -117,8 +117,8 @@ The `description` field is the authoritative specification. The verifier checks 
 ## Full Example
 
 ```yaml
-manifest_version: "1"
-name: "feature-flag-service"
+meta:
+  name: "feature-flag-service"
 config:
   adversarial_mode: true
   token_budget: 500000

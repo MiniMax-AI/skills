@@ -849,6 +849,80 @@ test('fib', () => { console.log(fib(10)); });
     );
     assertEqual(result !== null, true, 'executeTask returned a result');
   }],
+
+  ['T43: non-adversarial mode completes with warning on verifier fail', async () => {
+    const { WorkflowEngine } = require('./workflow-engine.js');
+    const oldCwd = process.cwd();
+    const dir = createTestDir();
+    process.chdir(dir);
+    writeManifest(dir, {
+      meta: { name: 'non-adversarial-test' },
+      config: { adversarial_mode: false, token_budget: 50000, verifier_max_retries: 0 },
+      phases: {
+        build: {
+          name: 'Build Phase',
+          tasks: [
+            { id: 'task-a', title: 'Task A', agent_role: 'worker', description: 'Build A __FAIL__', verifier: 'spec-compliance' },
+          ]
+        }
+      }
+    });
+    const engine = new WorkflowEngine(path.join(dir, 'test.yaml'));
+    await engine.init();
+    engine.platform = 'mock';
+    engine.agent.platform = 'mock';
+    engine.executor.agent.platform = 'mock';
+    const result = await engine.run();
+    process.chdir(oldCwd);
+    // Non-adversarial: task completes with warning=true even though verifier failed
+    const taskA = result.tasks.find(t => t.id === 'task-a');
+    assertEqual(taskA?.status, 'completed', 'task completed in non-adversarial mode');
+    assertEqual(taskA?.warning, true, 'task has warning flag when verifier failed');
+  }],
+
+  ['T44: wave-level timeout aborts all tasks in the wave', async () => {
+    const { WorkflowEngine } = require('./workflow-engine.js');
+    const oldCwd = process.cwd();
+    const dir = createTestDir();
+    process.chdir(dir);
+    writeManifest(dir, {
+      meta: { name: 'wave-timeout-test' },
+      config: { adversarial_mode: false, token_budget: 50000, timeouts: { wave: 80 } },
+      phases: {
+        build: {
+          name: 'Build Phase',
+          tasks: [
+            { id: 'task-a', title: 'Task A', agent_role: 'worker', description: 'Build A' },
+            { id: 'task-b', title: 'Task B', agent_role: 'worker', description: 'Build B' },
+          ]
+        }
+      }
+    });
+    const engine = new WorkflowEngine(path.join(dir, 'test.yaml'));
+    await engine.init();
+    engine.platform = 'mock';
+    engine.agent.platform = 'mock';
+    engine.executor.agent.platform = 'mock';
+
+    // Patch _mockAgent to add a 300ms delay so wave timeout (80ms) fires first
+    const orig = engine.agent._mockAgent.bind(engine.agent);
+    engine.agent._mockAgent = async function(role, prompt, options) {
+      await new Promise(r => setTimeout(r, 300));
+      return orig(role, prompt, options);
+    };
+
+    const result = await engine.run();
+    process.chdir(oldCwd);
+
+    const taskA = result.tasks.find(t => t.id === 'task-a');
+    const taskB = result.tasks.find(t => t.id === 'task-b');
+
+    // Wave timeout fires before tasks complete → both should be failed
+    assertEqual(taskA?.status, 'failed', 'task-a timed out by wave');
+    assertEqual(taskB?.status, 'failed', 'task-b timed out by wave');
+    assertContains(taskA?.error || '', 'aborted', 'task-a error should mention abort');
+    assertContains(taskB?.error || '', 'aborted', 'task-b error should mention abort');
+  }],
 ];
 
 (async () => {

@@ -41,8 +41,9 @@ The core principle: **flow must not drift** — all execution paths are hardcode
 ### 1. Create a Manifest
 
 ```yaml
-manifest_version: "1"
-name: "my-feature"
+meta:
+  name: "my-feature"
+
 config:
   model: "MiniMax/MiniMax"
   adversarial_mode: true
@@ -69,7 +70,7 @@ SOP_PLATFORM=minimax SOP_LLM_MODEL=MiniMax-M2.7-highspeed \
 ### 3. Test
 
 ```bash
-npm test   # 42 unit tests
+npm test   # 44 unit tests
 ```
 
 ## Architecture
@@ -82,7 +83,7 @@ sop-workflow/
 │   └── verifier-guide.md     # Verifier types and thresholds
 ├── engines/
 │   ├── workflow-engine.js     # Core engine (~2000 lines)
-│   └── test-engine.js         # 42 unit tests
+│   └── test-engine.js         # 44 unit tests
 └── scripts/
     └── bootstrap.sh          # Quick-start manifest generator
 ```
