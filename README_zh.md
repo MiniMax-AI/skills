@@ -17,6 +17,7 @@
 | `flutter-dev` | Flutter 跨平台开发指南，涵盖 Widget 模式、Riverpod/Bloc 状态管理、GoRouter 导航、性能优化与测试策略。 | Official |
 | `react-native-dev` | React Native 与 Expo 开发指南，涵盖组件、样式、动画、导航、状态管理、表单、网络请求、性能优化、测试、原生能力及工程化（项目结构、部署、SDK 升级、CI/CD）。 | Official |
 | `shader-dev` | 全面的 GLSL 着色器技术，用于创建惊艳的视觉效果 — 光线行进、SDF 建模、流体模拟、粒子系统、程序化生成、光照、后处理等。兼容 ShaderToy。 | Official |
+| `sop-workflow` | 跨平台多 Agent 工作流执行系统，支持对抗式验证。基于 DAG 的并行任务波次（Kahn 算法）、两阶段评审（规范合规性 → 代码质量）、波次级 AbortController 取消、原子状态持久化与崩溃恢复、指数退避重试，以及 evidence-before-claims shell 命令注入 verifier prompt。MiniMax-M1 驱动。 | Community |
 | `gif-sticker-maker` | 将照片（人物、宠物、物品、Logo）转换为 4 张带字幕的动画 GIF 贴纸。Funko Pop / Pop Mart 盲盒风格，基于 MiniMax 图片与视频生成 API。 | Official |
 | `minimax-pdf` | 基于 token 化设计系统生成、填写和重排 PDF 文档。支持三种模式：CREATE（从零生成，15 种封面风格）、FILL（填写现有表单字段）、REFORMAT（将已有文档重排为新设计）。排版与配色由文档类型自动推导，输出即可打印。 | Official |
 | `pptx-generator` | 生成、编辑和读取 PowerPoint 演示文稿。支持用 PptxGenJS 从零创建（封面、目录、内容、分节页、总结页），通过 XML 工作流编辑现有 PPTX，或用 markitdown 提取文本。 | Official |

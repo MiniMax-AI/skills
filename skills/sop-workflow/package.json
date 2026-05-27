@@ -1,0 +1,17 @@
+{
+  "name": "sop-workflow",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node engines/test-engine.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "glob": "^13.0.6",
+    "js-yaml": "^4.1.1"
+  }
+}
