@@ -43,7 +43,7 @@ Always use these flags in non-interactive (agent/CI) contexts:
 
 ### text chat
 
-Chat completion. Default model: `MiniMax-M2.7`.
+Chat completion. Default model: `MiniMax-M3`.
 
 ```bash
 mmx text chat --message <text> [flags]
@@ -54,7 +54,7 @@ mmx text chat --message <text> [flags]
 | `--message <text>` | string, **required**, repeatable | Message text. Prefix with `role:` to set role (e.g. `"system:You are helpful"`, `"user:Hello"`) |
 | `--messages-file <path>` | string | JSON file with messages array. Use `-` for stdin |
 | `--system <text>` | string | System prompt |
-| `--model <model>` | string | Model ID (default: `MiniMax-M2.7`) |
+| `--model <model>` | string | Model ID (default: `MiniMax-M3`) |
 | `--max-tokens <n>` | number | Max tokens (default: 4096) |
 | `--temperature <n>` | number | Sampling temperature (0.0, 1.0] |
 | `--top-p <n>` | number | Nucleus sampling threshold |
