@@ -659,9 +659,28 @@ def _add_table(story: list, item: dict, ctx: dict):
     ]
     n_cols = len(item["headers"])
 
-    # Optional col_widths as fractions summing to 1.0
+    # Optional col_widths. Two formats accepted, auto-detected:
+    #   - Fractions summing to ~1.0 (e.g. [0.3, 0.5, 0.2]) — multiplied by usable_w
+    #   - Absolute widths in PDF points (e.g. [120, 200, 80]) — used as-is, clamped to usable_w
     if "col_widths" in item and len(item["col_widths"]) == n_cols:
-        col_w = [usable_w * f for f in item["col_widths"]]
+        widths = [float(f) for f in item["col_widths"]]
+        s = sum(widths)
+        all_unit_or_less = all(0 <= w <= 1.0 for w in widths)
+        if abs(s - 1.0) < 0.01 and all_unit_or_less:
+            # Fractions format
+            col_w = [usable_w * f for f in widths]
+        else:
+            # Absolute widths in points — clamp each to fit within usable_w
+            col_w = [min(w, usable_w) for w in widths]
+            # If the sum still exceeds usable_w, scale down proportionally
+            total = sum(col_w)
+            if total > usable_w:
+                col_w = [w * (usable_w / total) for w in col_w]
+            sys.stderr.write(
+                f"[minimax-pdf] table col_widths on page treating as absolute "
+                f"points (sum={s:.1f}); fractions summing to 1.0 are recommended. "
+                f"See references/design.md.\n"
+            )
     else:
         col_w = [usable_w / n_cols] * n_cols
 
