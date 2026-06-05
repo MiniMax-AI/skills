@@ -106,7 +106,7 @@ You have creative authority over the accent color. Pick it from the document's s
 | `bullet` | Unordered list item (• prefix) | `text` |
 | `numbered` | Ordered list item — counter auto-resets on non-numbered blocks | `text` |
 | `callout` | Highlighted insight box with accent left bar | `text` |
-| `table` | Data table — accent header, alternating row tints | `headers`, `rows`, `col_widths`?, `caption`? |
+| `table` | Data table — accent header, alternating row tints | `headers`, `rows`, `col_widths`?, `caption`? | `col_widths` is a list of **fractions summing to 1.0** (e.g. `[0.3, 0.5, 0.2]`). Absolute widths in PDF points are also accepted as a fallback and will be clamped to the page width. | `col_widths` is a list of **fractions summing to 1.0** (e.g. `[0.3, 0.5, 0.2]`). Absolute widths in PDF points are also accepted as a fallback and will be clamped to the page width. |
 | `image` | Embedded image scaled to column width | `path`/`src`, `caption`? |
 | `figure` | Image with auto-numbered "Figure N:" caption | `path`/`src`, `caption`? |
 | `code` | Monospace code block with accent left border | `text`, `language`? |
