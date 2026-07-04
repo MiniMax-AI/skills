@@ -22,12 +22,24 @@ import sys
 def extract_frontmatter(text):
     """Extract YAML frontmatter string between --- markers. Returns None if not found."""
     stripped = text.lstrip("\ufeff")
-    if not stripped.startswith("---"):
+    lines = stripped.splitlines()
+    if not lines or lines[0].strip() != "---":
         return None
-    end = stripped.find("---", 3)
-    if end == -1:
-        return None
-    return stripped[3:end]
+    for idx, line in enumerate(lines[1:], 1):
+        if line.strip() == "---":
+            return "\n".join(lines[1:idx])
+    return None
+
+
+def has_legacy_metadata_outside_frontmatter(text):
+    """Detect common legacy files with name/description lines outside YAML frontmatter."""
+    stripped = text.lstrip("\ufeff")
+    if stripped.startswith("---"):
+        return False
+    header = "\n".join(stripped.splitlines()[:12])
+    has_name = re.search(r"(?m)^name\s*:\s*\S+", header) is not None
+    has_description = re.search(r"(?m)^description\s*:\s*\S+", header) is not None
+    return has_name and has_description
 
 
 def parse_frontmatter_fields(fm_text):
@@ -126,7 +138,13 @@ def validate_skill(skill_dir):
 
     fm_text = extract_frontmatter(content)
     if fm_text is None:
-        errors.append("SKILL.md has no valid YAML frontmatter (missing --- markers)")
+        if has_legacy_metadata_outside_frontmatter(content):
+            errors.append(
+                "SKILL.md has name/description outside YAML frontmatter; "
+                "wrap required metadata between opening and closing --- markers"
+            )
+        else:
+            errors.append("SKILL.md has no valid YAML frontmatter (missing --- markers)")
         return errors, warnings
 
     fields = parse_frontmatter_fields(fm_text)
