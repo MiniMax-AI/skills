@@ -1,0 +1,2 @@
+# No third-party dependencies. fix-skill-frontmatter.py uses Python 3.8+
+# stdlib only (argparse, os, sys, tempfile, pathlib, typing).
