@@ -10,6 +10,7 @@ export DOTNET_CLI_UI_LANGUAGE=en
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 DOTNET_DIR="$SCRIPT_DIR/dotnet"
+CLI_PROJECT="$DOTNET_DIR/MiniMaxAIDocx.Cli/MiniMaxAIDocx.Cli.csproj"
 LOG_FILE="$PROJECT_DIR/.setup.log"
 
 # --- Colors ---
@@ -265,31 +266,31 @@ build_project() {
         fail "Dotnet project directory not found: $DOTNET_DIR"
         return 1
     fi
-
-    cd "$DOTNET_DIR"
+    if [ ! -f "$CLI_PROJECT" ]; then
+        fail "CLI project not found: $CLI_PROJECT"
+        return 1
+    fi
 
     info "Restoring NuGet packages..."
-    if ! dotnet restore --verbosity quiet 2>>"$LOG_FILE"; then
+    if ! dotnet restore "$CLI_PROJECT" --verbosity quiet 2>>"$LOG_FILE"; then
         fail "NuGet restore failed. Check network and $LOG_FILE for details."
         fail "Common causes:"
         fail "  - No internet access (NuGet needs to download packages)"
         fail "  - Corporate proxy blocking nuget.org"
         fail "  - Disk space insufficient"
         echo ""
-        fail "Try manually: cd $DOTNET_DIR && dotnet restore --verbosity detailed"
+        fail "Try manually: dotnet restore \"$CLI_PROJECT\" --verbosity detailed"
         return 1
     fi
     log "NuGet packages restored"
 
     info "Building project..."
-    if ! dotnet build --verbosity quiet --no-restore 2>>"$LOG_FILE"; then
+    if ! dotnet build "$CLI_PROJECT" --verbosity quiet --no-restore 2>>"$LOG_FILE"; then
         fail "Build failed. Check $LOG_FILE for details."
-        fail "Try manually: cd $DOTNET_DIR && dotnet build --verbosity normal"
+        fail "Try manually: dotnet build \"$CLI_PROJECT\" --verbosity normal"
         return 1
     fi
     log "Project built successfully"
-
-    cd "$PROJECT_DIR"
 }
 
 # --- Shell Script Permissions ---
@@ -410,7 +411,7 @@ verify_installation() {
     local test_output="/tmp/minimax-docx-setup-test-$$.docx"
 
     info "Creating a test document..."
-    if cd "$DOTNET_DIR" && dotnet run --project MiniMaxAIDocx.Cli -- create \
+    if dotnet run --project "$CLI_PROJECT" -- create \
         --type report --output "$test_output" --title "Setup Test" 2>>"$LOG_FILE"; then
         log "Test document created: $test_output"
 
@@ -430,8 +431,6 @@ verify_installation() {
         fail "Test document creation failed. Check $LOG_FILE for details."
         return 1
     fi
-
-    cd "$PROJECT_DIR"
 }
 
 # --- Summary ---
@@ -446,8 +445,8 @@ print_summary() {
     echo "  Project:     $DOTNET_DIR"
     echo ""
     echo "  Usage:"
-    echo "    dotnet run --project $DOTNET_DIR/MiniMaxAIDocx.Cli -- create --type report --output my_report.docx"
-    echo "    bash $SCRIPT_DIR/env_check.sh     # Quick environment check"
+    echo "    dotnet run --project \"$CLI_PROJECT\" -- create --type report --output my_report.docx"
+    echo "    bash \"$SCRIPT_DIR/env_check.sh\"     # Quick environment check"
     echo ""
     echo "  Log file: $LOG_FILE"
 }
