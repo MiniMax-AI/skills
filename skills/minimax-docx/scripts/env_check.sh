@@ -7,6 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 DOTNET_DIR="$SCRIPT_DIR/dotnet"
+CLI_PROJECT="$DOTNET_DIR/MiniMaxAIDocx.Cli/MiniMaxAIDocx.Cli.csproj"
 
 # Force English output for dotnet CLI
 export DOTNET_CLI_UI_LANGUAGE=en
@@ -60,34 +61,41 @@ else
 fi
 
 # --- Critical: NuGet packages ---
-if [ -d "$DOTNET_DIR" ]; then
+if [ ! -d "$DOTNET_DIR" ]; then
+    printf "[FAIL]    %-14s directory not found: %s\n" "project" "$DOTNET_DIR"
+    STATUS="NOT READY"
+elif [ ! -f "$CLI_PROJECT" ]; then
+    printf "[FAIL]    %-14s file not found: %s\n" "project" "$CLI_PROJECT"
+    STATUS="NOT READY"
+else
     if [ -f "$DOTNET_DIR/MiniMaxAIDocx.Cli/bin/Debug/net10.0/MiniMaxAIDocx.Cli.dll" ] || \
        [ -f "$DOTNET_DIR/MiniMaxAIDocx.Cli/bin/Debug/net8.0/MiniMaxAIDocx.Cli.dll" ]; then
         printf "[OK]      %-14s built\n" "project"
     else
         # Try restore + build
-        if dotnet restore "$DOTNET_DIR" --verbosity quiet &>/dev/null; then
+        if restore_output=$(dotnet restore "$CLI_PROJECT" --verbosity quiet 2>&1); then
             printf "[OK]      %-14s packages restored\n" "nuget"
-            if dotnet build "$DOTNET_DIR" --verbosity quiet --no-restore &>/dev/null; then
+            if build_output=$(dotnet build "$CLI_PROJECT" --verbosity quiet --no-restore 2>&1); then
                 printf "[OK]      %-14s build succeeded\n" "project"
             else
-                printf "[FAIL]    %-14s build failed (run: dotnet build %s)\n" "project" "$DOTNET_DIR"
+                printf "[FAIL]    %-14s build failed\n" "project"
+                printf '%s\n' "$build_output" | sed 's/^/           /'
+                echo "  Retry: dotnet build \"$CLI_PROJECT\" --verbosity normal"
                 STATUS="NOT READY"
             fi
         else
             printf "[FAIL]    %-14s restore failed\n" "nuget"
+            printf '%s\n' "$restore_output" | sed 's/^/           /'
             echo ""
             echo "  Common causes:"
             echo "    - No internet access (NuGet needs to download packages)"
             echo "    - Corporate proxy blocking nuget.org"
             echo "    - SSL certificate issues (try: dotnet nuget list source)"
+            echo "  Retry: dotnet restore \"$CLI_PROJECT\" --verbosity detailed"
             echo ""
             STATUS="NOT READY"
         fi
     fi
-else
-    printf "[FAIL]    %-14s directory not found: %s\n" "project" "$DOTNET_DIR"
-    STATUS="NOT READY"
 fi
 
 # --- Optional: pandoc ---
