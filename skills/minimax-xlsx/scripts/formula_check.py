@@ -33,6 +33,14 @@ import xml.etree.ElementTree as ET
 import re
 import json
 
+# Windows pipes default to a legacy codepage (e.g. cp1252) that cannot encode
+# the ✓/→ characters these tools print - degrade to "?" instead of crashing.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
 # OOXML SpreadsheetML namespace
 NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 NSP = f"{{{NS}}}"
