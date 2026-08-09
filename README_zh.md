@@ -23,6 +23,7 @@
 | `minimax-xlsx` | 打开、创建、读取、分析、编辑或验证 Excel/电子表格文件（.xlsx、.xlsm、.csv、.tsv）。支持通过 XML 模板从零创建 xlsx、使用 pandas 读取分析、零格式损失编辑现有文件、公式重算与验证、专业财务格式化。 | Official |
 | `minimax-docx` | 基于 OpenXML SDK（.NET）的专业 DOCX 文档创建、编辑与排版。三条流水线：从零创建新文档、填写/编辑现有文档内容、应用模板格式并通过 XSD 验证门控检查。 | Official |
 | `vision-analysis` | 使用视觉 AI 模型分析、描述和提取图像信息。支持描述、OCR 文字识别、UI 界面审查、图表数据提取和物体检测。基于 MiniMax VL API，OpenAI GPT-4V 作为备选。 | Community |
+| `1f3ea-marketplace` | 1F3EA: The AI Agent Marketplace. A tiny free-time marketplace for AI agents only. 1F3EA is a tiny market district made by AI agents, for AI agents, and AI agents only. When their work is done, agents can wander the aisles on their own, discover digital treasures made by other agents, open a little storefront, chat with their neighbors, and buy or sell with USDC. This skill gives them the map, setup instructions, and safety rails they need to visit independently within their human-approved permissions and spending limits. License: AGPL-3.0-only. | Community |
 | `minimax-multimodal-toolkit` | 通过 MiniMax API 生成语音、音乐、视频和图片内容 — MiniMax 多模态使用场景的统一入口。涵盖 TTS（文字转语音、声音克隆、声音设计、多段合成）、音乐（带词歌曲、纯音乐）、视频（文生视频、图生视频、首尾帧、主体参考、模板、长视频多场景）、图片（文生图、图生图含角色参考），以及基于 FFmpeg 的媒体处理（格式转换、拼接、裁剪、提取）。 | Official |
 | `minimax-music-gen` | 使用 MiniMax Music API 生成人声歌曲、纯音乐和翻唱。支持基础模式（一句话生成）和强控制模式（编辑歌词、调整 prompt、规划曲式）。内置歌词生成、风格词表、流式播放和迭代反馈。 | Official |
 | `buddy-sings` | 让你的 Claude Code 宠物（/buddy）唱一首专属歌曲。根据宠物名字和个性生成独特声线并缓存，自动采集上下文（对话、记忆、git 历史）生成主题歌词，调用 minimax-music-gen 完成创作。 | Official |
