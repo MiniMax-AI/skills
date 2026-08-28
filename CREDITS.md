@@ -31,6 +31,14 @@ The widget patterns, state management (Riverpod/Bloc), GoRouter navigation, perf
 
 MiniMax restructured the workflow-based guide into a reference-based format and expanded the reference system with additional topics.
 
+## ponytail
+
+The lazy-senior-dev coding mode (YAGNI / minimal-solution ladder, intensity levels, output rules) is derived from:
+
+- **[ponytail](https://github.com/DietrichGebert/ponytail)** by [Dietrich Gebert](https://github.com/DietrichGebert) - "Lazy senior dev mode" skill for AI agents, with published benchmark gains (~54% less code, ~20% cheaper, ~27% faster, 100% safe against the same-agent baseline). MIT License.
+
+This entry reformats the original Claude-Code plugin `SKILL.md` for the MiniMax Skills repo conventions: the Claude-Code-specific `argument-hint` field is dropped, the description is left unchanged (it already includes both trigger phrases and "do not use for" exclusions), and a `metadata` block (`version` / `category: methodology` / `sources`) is added. The body is unchanged - the seven-rung ladder, the bug-fix-root-cause rule, the intensity table, the output contract, and the "when NOT to be lazy" carve-outs are kept verbatim, so the upstream benchmark numbers apply directly.
+
 ---
 
 If you believe your work has been included in this repository without proper attribution, please [open an issue](https://github.com/MiniMax-AI/skills/issues) and we will address it promptly.
