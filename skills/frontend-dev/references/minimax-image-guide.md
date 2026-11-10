@@ -3,23 +3,23 @@
 ## CLI usage
 
 ```bash
-# Basic (1:1, 1024x1024)
+# Basic (default 4K)
 python scripts/minimax_image.py "A cat astronaut floating in space" -o cat.png
 
-# 16:9 for hero banner
-python scripts/minimax_image.py "Mountain landscape at golden hour" -o hero.png --ratio 16:9
+# 16:9 at 1K
+python scripts/minimax_image.py "Mountain landscape at golden hour" -o hero.png --ratio 16:9 --area 1K
+
+# Exact size
+python scripts/minimax_image.py "Product photo" -o product.png --size 1024x1024
 
 # Batch: 4 images at once
-python scripts/minimax_image.py "Minimalist product icon" -o icons.png -n 4
+python scripts/minimax_image.py "Minimalist product icon" -o icons.png -n 4 --ratio 1:1 --area 1K
 
-# With seed for reproducibility
-python scripts/minimax_image.py "Abstract gradient background" -o bg.png --seed 42
-
-# Enable prompt optimization
-python scripts/minimax_image.py "a dog" -o dog.png --optimize
+# Edit with reference images
+python scripts/minimax_image.py "Put the hat from Picture 2 on the person in Picture 1" -o out.png --image person.jpg --image hat.png
 
 # Base64 mode (no URL download, save directly)
-python scripts/minimax_image.py "Logo concept" -o logo.png --base64
+python scripts/minimax_image.py "Logo concept" -o logo.png --base64 --ratio 1:1 --area 1K
 ```
 
 ## Programmatic usage
@@ -28,38 +28,36 @@ python scripts/minimax_image.py "Logo concept" -o logo.png --base64
 from minimax_image import generate_image, download_and_save
 
 # Generate and get URL
-result = generate_image("A cat in space", aspect_ratio="16:9")
-url = result["data"]["image_urls"][0]
+result = generate_image("A cat in space", aspect_ratio="16:9", area="1K")
+url = result["data"][0]["url"]
 download_and_save(url, "cat.png")
 
 # Generate multiple
-result = generate_image("Icon design", n=4, aspect_ratio="1:1")
-for i, url in enumerate(result["data"]["image_urls"]):
-    download_and_save(url, f"icon-{i}.png")
+result = generate_image("Icon design", n=4, aspect_ratio="1:1", area="1K")
+for i, item in enumerate(result["data"]):
+    download_and_save(item["url"], f"icon-{i}.png")
+
+# Edit with reference images
+result = generate_image(
+    "Put the hat from Picture 2 on the person in Picture 1",
+    images=["person.jpg", "hat.png"],
+    aspect_ratio="1:1",
+    area="1K",
+)
 ```
 
 ## Model
 
-Currently only `image-01`.
+`MiniMax-H3-Image`. Text-to-image uses `/v1/images/generations`. Reference images (`--image`, 1–16) use `/v1/images/edits`.
 
-## Aspect ratios & dimensions
+## Sizing
 
-| Ratio | Pixels | Use case |
-|-------|--------|----------|
-| `1:1` | 1024x1024 | Avatar, icon, square thumbnail |
-| `16:9` | 1280x720 | Hero banner, video thumbnail |
-| `4:3` | 1152x864 | Standard landscape |
-| `3:2` | 1248x832 | Photo-style |
-| `2:3` | 832x1248 | Portrait, mobile |
-| `3:4` | 864x1152 | Portrait card |
-| `9:16` | 720x1280 | Mobile fullscreen, story |
-| `21:9` | 1344x576 | Ultra-wide banner |
+Use `--ratio` plus `--area` (`1K` / `2K` / `4K`, default `4K`), or `--size WxH` (not together). Area must be at least 655,360 px; aspect ratio between 1:3 and 3:1.
 
-Custom dimensions also supported: width/height in [512, 2048], must be divisible by 8.
+Common ratios: `1:1`, `16:9`, `4:3`, `3:2`, `2:3`, `3:4`, `9:16`, `21:9`.
 
 ## Limits
 
-- Prompt: max 1,500 characters
-- Batch: 1–9 images per request
+- Batch: 1–10 images per request
 - URL expires after 24 hours (use `--base64` to avoid expiry)
-- Seed: set for reproducible results across identical prompts
+- Requests are not idempotent — do not retry a slow call
