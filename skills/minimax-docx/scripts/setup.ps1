@@ -13,6 +13,7 @@ $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectDir = Split-Path -Parent $ScriptDir
 $DotnetDir = Join-Path $ScriptDir "dotnet"
+$CliProject = Join-Path (Join-Path $DotnetDir "MiniMaxAIDocx.Cli") "MiniMaxAIDocx.Cli.csproj"
 $LogFile = Join-Path $ProjectDir ".setup.log"
 
 # --- Output Helpers ---
@@ -200,11 +201,13 @@ if (-not (Test-Path $DotnetDir)) {
     Fail "Dotnet project directory not found: $DotnetDir"
     exit 1
 }
-
-Push-Location $DotnetDir
+if (-not (Test-Path $CliProject)) {
+    Fail "CLI project not found: $CliProject"
+    exit 1
+}
 
 Info "Restoring NuGet packages..."
-$restoreResult = & dotnet restore --verbosity quiet 2>&1
+$restoreResult = & dotnet restore $CliProject --verbosity quiet 2>&1
 if ($LASTEXITCODE -ne 0) {
     Fail "NuGet restore failed:"
     $restoreResult | ForEach-Object { Fail "  $_" }
@@ -212,23 +215,19 @@ if ($LASTEXITCODE -ne 0) {
     Fail "  - No internet (NuGet needs to download packages)"
     Fail "  - Corporate proxy/firewall blocking nuget.org"
     Fail "  - Insufficient disk space"
-    Fail "Try: dotnet restore --verbosity detailed"
-    Pop-Location
+    Fail "Try: dotnet restore `"$CliProject`" --verbosity detailed"
     exit 1
 }
 Log "NuGet packages restored"
 
 Info "Building project..."
-$buildResult = & dotnet build --verbosity quiet --no-restore 2>&1
+$buildResult = & dotnet build $CliProject --verbosity quiet --no-restore 2>&1
 if ($LASTEXITCODE -ne 0) {
     Fail "Build failed:"
     $buildResult | ForEach-Object { Fail "  $_" }
-    Pop-Location
     exit 1
 }
 Log "Project built successfully"
-
-Pop-Location
 
 # --- Verification ---
 if (-not $SkipVerify) {
@@ -237,10 +236,8 @@ if (-not $SkipVerify) {
     $testOutput = Join-Path $env:TEMP "minimax-docx-setup-test-$PID.docx"
 
     Info "Creating a test document..."
-    Push-Location $DotnetDir
-    $testResult = & dotnet run --project MiniMaxAIDocx.Cli -- create --type report --output $testOutput --title "Setup Test" 2>&1
+    $testResult = & dotnet run --project $CliProject -- create --type report --output $testOutput --title "Setup Test" 2>&1
     $testExitCode = $LASTEXITCODE
-    Pop-Location
 
     if ($testExitCode -eq 0 -and (Test-Path $testOutput)) {
         Log "Test document created: $testOutput"
@@ -269,6 +266,6 @@ Write-Host "  pandoc:      $pandocInfo"
 Write-Host "  Project:     $DotnetDir"
 Write-Host ""
 Write-Host "  Usage:"
-Write-Host "    dotnet run --project $DotnetDir\MiniMaxAIDocx.Cli -- create --type report --output my_report.docx"
+Write-Host "    dotnet run --project `"$CliProject`" -- create --type report --output my_report.docx"
 Write-Host ""
 Write-Host "  Log file: $LogFile"
