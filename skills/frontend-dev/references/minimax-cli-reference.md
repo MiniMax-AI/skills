@@ -65,37 +65,39 @@ generate("A cat playing piano", "cat.mp4", model="MiniMax-Hailuo-2.3", duration=
 
 See [minimax-video-guide.md](minimax-video-guide.md) for full camera command list and model compatibility.
 
-## Image (Text-to-Image)
+## Image (Text-to-Image / Edit)
 
 **Script:** `scripts/minimax_image.py`
 
 ```bash
-python scripts/minimax_image.py "A cat astronaut in space" -o cat.png
-python scripts/minimax_image.py "Mountain landscape" -o hero.png --ratio 16:9
-python scripts/minimax_image.py "Product icons, flat style" -o icons.png -n 4 --seed 42
+python scripts/minimax_image.py "A cat astronaut in space" -o cat.png --ratio 1:1 --area 1K
+python scripts/minimax_image.py "Mountain landscape" -o hero.png --ratio 16:9 --area 1K
+python scripts/minimax_image.py "Product icons, flat style" -o icons.png -n 4 --ratio 1:1 --area 1K
+python scripts/minimax_image.py "Put the hat on the person" -o out.png --image person.jpg --image hat.png
 ```
 
-**Model:** `image-01`. Sync: returns image URL (or base64) immediately.
+**Model:** `MiniMax-H3-Image`. Sync. Text-to-image: `/v1/images/generations`. `--image` references: `/v1/images/edits`.
 
 | Flag | Default | Options |
 |------|---------|---------|
 | `-o` | (required) | Output file path (.png/.jpg) |
-| `--ratio` | 1:1 | 1:1 / 16:9 / 4:3 / 3:2 / 2:3 / 3:4 / 9:16 / 21:9 |
-| `-n` | 1 | Number of images (1–9) |
-| `--seed` | (random) | Seed for reproducibility |
-| `--optimize` | false | Enable prompt auto-optimization |
-| `--base64` | false | Return base64 instead of URL |
+| `--ratio` | (API auto) | Aspect ratio, e.g. 1:1 / 16:9 |
+| `--area` | 4K | 1K / 2K / 4K |
+| `--size` | (unset) | WxH, e.g. 1024x1024 (not with `--ratio`/`--area`) |
+| `--image` | (none) | Reference image path or URL (repeatable, 1–16) |
+| `-n` | 1 | Number of images (1–10) |
+| `--base64` | false | Return `b64_json` instead of URL |
 
 **Batch output:** with `-n > 1`, files are named `out-0.png`, `out-1.png`, etc.
 
 **Programmatic:**
 ```python
 from minimax_image import generate_image, download_and_save
-result = generate_image("A cat in space", aspect_ratio="16:9")
-download_and_save(result["data"]["image_urls"][0], "cat.png")
+result = generate_image("A cat in space", aspect_ratio="16:9", area="1K")
+download_and_save(result["data"][0]["url"], "cat.png")
 ```
 
-See [minimax-image-guide.md](minimax-image-guide.md) for ratio dimensions and details.
+See [minimax-image-guide.md](minimax-image-guide.md) for sizing and details.
 
 ## Music (Text-to-Music)
 
