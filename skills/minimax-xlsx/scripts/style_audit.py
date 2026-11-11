@@ -31,6 +31,14 @@ import re
 import tempfile
 import shutil
 
+# Windows pipes default to a legacy codepage (e.g. cp1252) that cannot encode
+# the ✓/→ characters these tools print - degrade to "?" instead of crashing.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
 NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 NSP = f"{{{NS}}}"
 
