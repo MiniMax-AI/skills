@@ -91,7 +91,14 @@ def find_ws_path(work_dir: str, sheet_name: str | None) -> str:
     rels_tree = ET.parse(os.path.join(work_dir, "xl", "_rels", "workbook.xml.rels"))
     for rel in rels_tree.getroot():
         if rel.get("Id") == rid:
-            return os.path.join(work_dir, "xl", rel.get("Target"))
+            target = rel.get("Target")
+            # A Target that starts with "/" is package absolute; openpyxl writes
+            # "/xl/worksheets/sheet1.xml". Anything else is relative to the part's
+            # own directory, xl/. os.path.join drops work_dir entirely for the
+            # absolute form, which sends the lookup to the drive root.
+            if target.startswith("/"):
+                return os.path.join(work_dir, target.lstrip("/"))
+            return os.path.join(work_dir, "xl", target)
 
     print(f"ERROR: Relationship not found: {rid}")
     sys.exit(1)

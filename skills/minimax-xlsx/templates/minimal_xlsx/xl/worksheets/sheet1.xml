@@ -35,11 +35,12 @@
 <worksheet
   xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
   xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <!-- To freeze the top row as a header, put this inside <sheetView>:
+       <pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>
+       Keep comments out of <sheetView> and <sheetData>; openpyxl treats every
+       child of a collection as an entry. -->
   <sheetViews>
-    <sheetView tabSelected="1" workbookViewId="0">
-      <!-- Freeze top row as header: -->
-      <!-- <pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/> -->
-    </sheetView>
+    <sheetView tabSelected="1" workbookViewId="0"/>
   </sheetViews>
   <sheetFormatPr defaultRowHeight="15" x14ac:dyDescent="0.25"
     xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"/>
@@ -49,9 +50,8 @@
     <col min="2" max="10" width="14" customWidth="1"/>
   </cols>
   -->
-  <sheetData>
-    <!-- Replace this placeholder with actual data rows.
-         Example:
+  <!-- Replace the placeholder inside <sheetData> below with actual data rows.
+       Example:
     <row r="1">
       <c r="A1" t="s" s="4"><v>0</v></c>
       <c r="B1" t="s" s="4"><v>1</v></c>
@@ -64,7 +64,8 @@
       <c r="A3" t="s" s="2"><v>3</v></c>
       <c r="B3" s="2"><f>B2*1.1</f><v></v></c>
     </row>
-    -->
+  -->
+  <sheetData>
   </sheetData>
   <pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>
 </worksheet>

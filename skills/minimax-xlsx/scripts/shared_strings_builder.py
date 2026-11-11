@@ -47,19 +47,23 @@ def escape_text(s: str) -> tuple[str, bool]:
 
 
 def build_xml(strings: list[str]) -> str:
-    """Build sharedStrings.xml content from a list of unique strings."""
+    """Build sharedStrings.xml content from a list of unique strings.
+
+    No index comments are emitted inside <sst>: openpyxl iterates every child of
+    a collection, so a comment there is read as a string entry and the file
+    fails to load. Use --index for the index-to-string mapping instead.
+    """
     n = len(strings)
     lines = [
         HEADER,
         f'<sst xmlns="{SST_NS}" count="{n}" uniqueCount="{n}">',
     ]
-    for i, s in enumerate(strings):
+    for s in strings:
         escaped, preserve = escape_text(s)
         if preserve:
-            lines.append(f'  <si><t xml:space="preserve">{escaped}</t></si>'
-                         f'  <!-- index {i} -->')
+            lines.append(f'  <si><t xml:space="preserve">{escaped}</t></si>')
         else:
-            lines.append(f'  <si><t>{escaped}</t></si>  <!-- index {i} -->')
+            lines.append(f'  <si><t>{escaped}</t></si>')
     lines.append("</sst>")
     return "\n".join(lines) + "\n"
 

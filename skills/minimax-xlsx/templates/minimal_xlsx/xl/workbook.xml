@@ -21,8 +21,10 @@
   <bookViews>
     <workbookView xWindow="0" yWindow="0" windowWidth="20140" windowHeight="10960"/>
   </bookViews>
+  <!-- Add more <sheet> elements inside <sheets> below for multi-sheet workbooks.
+       Keep comments OUT of <sheets>: openpyxl iterates every child of a
+       collection and would treat a comment as a sheet entry. -->
   <sheets>
-    <!-- Add more <sheet> elements here for multi-sheet workbooks -->
     <sheet name="Sheet1" sheetId="1" r:id="rId1"/>
   </sheets>
   <!-- calcId ensures Excel recalculates formulas on open -->

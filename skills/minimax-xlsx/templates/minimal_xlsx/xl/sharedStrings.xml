@@ -23,11 +23,12 @@
   uniqueCount   = number of unique strings in this table
   (They may differ if some strings are used in multiple cells)
 -->
+<!-- Example entries, to be placed inside <sst> below:
+     <si><t>Revenue</t></si>
+     <si><t>Cost of Goods Sold</t></si>
+     <si><t>Gross Profit</t></si>
+     Keep comments out of <sst> itself; openpyxl treats every child of a
+     collection as an entry. -->
 <sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
      count="0" uniqueCount="0">
-  <!-- Strings will be added here. Example:
-  <si><t>Revenue</t></si>
-  <si><t>Cost of Goods Sold</t></si>
-  <si><t>Gross Profit</t></si>
-  -->
 </sst>

@@ -18,14 +18,57 @@ Exit codes:
 """
 
 import sys
+import os
+import re
 import json
 import argparse
+import tempfile
+import zipfile
 from pathlib import Path
 
 
 # ---------------------------------------------------------------------------
 # Format detection and loading
 # ---------------------------------------------------------------------------
+
+_XML_COMMENT_RE = re.compile(rb"<!--.*?-->", re.S)
+_XML_PART_SUFFIXES = (".xml", ".rels")
+
+
+def _path_without_xml_comments(file_path: str) -> str:
+    """Return a path to a copy of the workbook with XML comments removed.
+
+    openpyxl parses with lxml, whose default parser keeps comments as element
+    children. It reads a collection by iterating every child, so a comment
+    inside <sheets>, <fills>, <cellXfs> or <sheetData> is taken for an entry and
+    the load dies with e.g. "ChildSheet.name should be str but value is
+    NoneType" -- even though Excel opens the file without complaint. Stripping
+    comments first makes the reader work on any such file.
+
+    Returns file_path unchanged when nothing needed stripping, so the usual case
+    costs one extra read of the archive and no copy. The caller owns the
+    returned file and must delete it when it differs from file_path.
+    """
+    with zipfile.ZipFile(file_path) as src:
+        stripped = {}
+        for name in src.namelist():
+            if not name.lower().endswith(_XML_PART_SUFFIXES):
+                continue
+            raw = src.read(name)
+            cleaned = _XML_COMMENT_RE.sub(b"", raw)
+            if cleaned != raw:
+                stripped[name] = cleaned
+
+        if not stripped:
+            return file_path
+
+        fd, tmp_path = tempfile.mkstemp(suffix=Path(file_path).suffix)
+        os.close(fd)
+        with zipfile.ZipFile(tmp_path, "w", zipfile.ZIP_DEFLATED) as dst:
+            for item in src.infolist():
+                dst.writestr(item, stripped.get(item.filename, src.read(item.filename)))
+        return tmp_path
+
 
 def detect_and_load(file_path: str, sheet_name_filter: str | None = None) -> dict:
     """
@@ -49,7 +92,12 @@ def detect_and_load(file_path: str, sheet_name_filter: str | None = None) -> dic
 
     if suffix in (".xlsx", ".xlsm"):
         target = sheet_name_filter if sheet_name_filter else None
-        result = pd.read_excel(file_path, sheet_name=target)
+        read_path = _path_without_xml_comments(file_path)
+        try:
+            result = pd.read_excel(read_path, sheet_name=target)
+        finally:
+            if read_path != file_path:
+                os.remove(read_path)
         # pd.read_excel with sheet_name=None returns dict; with a name, returns DataFrame
         if isinstance(result, dict):
             return result
