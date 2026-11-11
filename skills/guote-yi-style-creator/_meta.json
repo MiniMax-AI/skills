@@ -1,0 +1,10 @@
+{
+  "id": 987654321098765,
+  "version": "1.0.0",
+  "name": "guote-yi-style-creator",
+  "description": "探店创作全能助手 - 集视频风格分析、短视频创作、餐厅推荐于一体的探店类短视频一站式解决方案。模拟郭特宜等热门博主的创作风格。",
+  "license": "MIT",
+  "author": {"name": "MiniMax Agent"},
+  "tags": ["探店", "短视频", "美食", "创作", "账号分析", "餐厅推荐"],
+  "platform": "minimax"
+}
