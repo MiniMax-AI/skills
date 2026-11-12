@@ -28,7 +28,19 @@
 
 set -euo pipefail
 SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PY="python3"
+resolve_python() {
+  local candidate
+  for candidate in python python3; do
+    if command -v "$candidate" &>/dev/null && \
+       "$candidate" -c "import sys; raise SystemExit(sys.version_info < (3, 9))" &>/dev/null; then
+      printf '%s' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+PY="$(resolve_python || true)"
 NODE="node"
 
 # ── Colour helpers ─────────────────────────────────────────────────────────────
@@ -43,15 +55,15 @@ cmd_check() {
   bold "Checking dependencies..."
 
   # Python
-  if command -v python3 &>/dev/null; then
-    green "  ✓ python3 $(python3 --version 2>&1 | awk '{print $2}')"
+  if [[ -n "$PY" ]]; then
+    green "  ✓ $PY $("$PY" --version 2>&1 | awk '{print $2}')"
   else
-    red   "  ✗ python3 not found"
+    red   "  ✗ working Python interpreter not found (tried python and python3)"
     ok=false
   fi
 
   # reportlab
-  if python3 -c "import reportlab" 2>/dev/null; then
+  if [[ -n "$PY" ]] && "$PY" -c "import reportlab" 2>/dev/null; then
     green "  ✓ reportlab"
   else
     yellow "  ⚠ reportlab not installed  (run: make.sh fix)"
@@ -59,7 +71,7 @@ cmd_check() {
   fi
 
   # pypdf
-  if python3 -c "import pypdf" 2>/dev/null; then
+  if [[ -n "$PY" ]] && "$PY" -c "import pypdf" 2>/dev/null; then
     green "  ✓ pypdf"
   else
     yellow "  ⚠ pypdf not installed  (run: make.sh fix)"
@@ -75,8 +87,7 @@ cmd_check() {
   fi
 
   # Playwright
-  if node -e "require('playwright')" 2>/dev/null || \
-     node -e "require(require('child_process').execSync('npm root -g').toString().trim()+'/playwright')" 2>/dev/null; then
+  if command -v "$NODE" &>/dev/null && "$NODE" "$SCRIPTS/render_cover.js" --check-playwright >/dev/null 2>&1; then
     green "  ✓ playwright"
   else
     yellow "  ⚠ playwright not found  (run: make.sh fix)"
@@ -84,7 +95,7 @@ cmd_check() {
   fi
 
   # matplotlib (optional — required for math/chart/flowchart; degrades gracefully)
-  if python3 -c "import matplotlib" 2>/dev/null; then
+  if [[ -n "$PY" ]] && "$PY" -c "import matplotlib" 2>/dev/null; then
     green "  ✓ matplotlib (math, chart, flowchart blocks enabled)"
   else
     yellow "  ⚠ matplotlib not installed — math/chart/flowchart blocks degrade to text  (run: make.sh fix)"
@@ -105,11 +116,14 @@ cmd_fix() {
   local rc=0
 
   # Python packages
-  if command -v python3 &>/dev/null; then
-    python3 -m pip install --break-system-packages -q reportlab pypdf matplotlib 2>/dev/null \
-      || python3 -m pip install -q reportlab pypdf matplotlib 2>/dev/null \
+  if [[ -n "$PY" ]]; then
+    "$PY" -m pip install --break-system-packages -q reportlab pypdf matplotlib 2>/dev/null \
+      || "$PY" -m pip install -q reportlab pypdf matplotlib 2>/dev/null \
       || { yellow "  pip install failed — try: pip install reportlab pypdf matplotlib"; rc=3; }
     green "  ✓ Python packages installed (reportlab, pypdf, matplotlib)"
+  else
+    yellow "  Python interpreter not found — cannot install Python dependencies automatically"
+    rc=2
   fi
 
   # Playwright

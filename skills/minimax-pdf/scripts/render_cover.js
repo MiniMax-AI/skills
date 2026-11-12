@@ -5,6 +5,7 @@
  * Usage:
  *   node render_cover.js --input cover.html --out cover.pdf
  *   node render_cover.js --input cover.html --out cover.pdf --wait 1200
+ *   node render_cover.js --check-playwright
  *
  * Exit codes: 0 success, 1 bad args, 2 dependency missing, 3 render error
  */
@@ -20,6 +21,7 @@ function usage() {
 // ── Arg parsing ────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 let inputFile = null, outFile = null, waitMs = 800;
+const checkPlaywright = args.includes("--check-playwright");
 
 for (let i = 0; i < args.length; i++) {
   if (args[i] === "--input" && args[i + 1]) { inputFile = args[++i]; }
@@ -27,26 +29,59 @@ for (let i = 0; i < args.length; i++) {
   else if (args[i] === "--wait"  && args[i + 1]) { waitMs    = parseInt(args[++i], 10); }
 }
 
-if (!inputFile || !outFile) usage();
-if (!fs.existsSync(inputFile)) {
+if (!checkPlaywright && (!inputFile || !outFile)) usage();
+if (!checkPlaywright && !fs.existsSync(inputFile)) {
   console.error(JSON.stringify({ status: "error", error: `File not found: ${inputFile}` }));
   process.exit(1);
 }
 
-// ── Playwright loader (tolerates global npm installs) ─────────────────────────
+// ── Playwright loader (tolerates local, nested, and global npm installs) ───────
+function tryRequirePlaywright(root) {
+  for (const candidate of [
+    path.join(root, "playwright"),
+    path.join(root, "@playwright", "mcp", "node_modules", "playwright"),
+  ]) {
+    try { return require(candidate); } catch (_) {}
+  }
+  try {
+    const mcpPackage = require.resolve("@playwright/mcp/package.json", { paths: [root] });
+    const nested = require.resolve("playwright", { paths: [path.dirname(mcpPackage)] });
+    return require(nested);
+  } catch (_) {}
+  return null;
+}
+
 function loadPlaywright() {
   const { execSync } = require("child_process");
   try { return require("playwright"); } catch (_) {}
-  try {
-    const root = execSync("npm root -g", { stdio: ["ignore","pipe","ignore"] }).toString().trim();
-    return require(path.join(root, "playwright"));
-  } catch (_) {}
+  const roots = new Set([
+    path.resolve(process.cwd(), "node_modules"),
+    path.resolve(__dirname, "..", "node_modules"),
+    path.resolve(__dirname, "..", "..", "node_modules"),
+  ]);
+  for (const npmArgs of ["npm root", "npm root -g"]) {
+    try {
+      const root = execSync(npmArgs, { stdio: ["ignore", "pipe", "ignore"], shell: true })
+        .toString()
+        .trim();
+      if (root) roots.add(root);
+    } catch (_) {}
+  }
+  for (const root of roots) {
+    const playwright = tryRequirePlaywright(root);
+    if (playwright !== null) return playwright;
+  }
   console.error(JSON.stringify({
     status: "error",
     error: "playwright not found",
     hint: "Run: npm install -g playwright && npx playwright install chromium"
   }));
   process.exit(2);
+}
+
+if (checkPlaywright) {
+  loadPlaywright();
+  process.exit(0);
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────
